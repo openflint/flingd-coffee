@@ -1,0 +1,47 @@
+{
+    "name": "flingd",
+    "version": "1.0.0",
+    "description": "Fling daemon implemented in Coffee for Node.js",
+    "author": [
+        {
+            "name": "Max Jiang",
+            "email": "max.jiang@matchstick.tv"
+        },
+        {
+            "name": "Manson Li",
+            "email": "manson.li@matchstick.tv"
+        }
+    ],
+    "contributors": [
+        {
+            "name": "Guowei Liu",
+            "email": "guowei.liu@matchstick.tv"
+        }
+    ],
+    "main": "lib/index.coffee",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/openflint/flingd-coffee"
+    },
+    "dependencies": {
+        "colors": "1.0.3",
+        "jsontoxml": "0.0.11",
+        "rekuire": "0.1.5",
+        "request": "2.45.0",
+        "string": "2.2.0",
+        "uuid": "2.0.1",
+        "ws": "0.4.32"
+    },
+    "devDependencies": {
+    },
+    "keywords": [
+        "dial",
+        "fling",
+        "matchstick"
+    ],
+    "license": "Apache",
+    "bugs": {
+        "url": "http://github.com/openflint/flingd-coffee/issues"
+    },
+    "homepage": "http://github.com/openflint"
+}
