@@ -41,6 +41,7 @@ class mdnsSdServer extends events.EventEmitter
         @address = @getAddress()
         @localName 
         @dnsSdResponse
+        @dnsSdKeepResponse
         @status = false
 
     getAddress: ->
@@ -71,11 +72,14 @@ class mdnsSdServer extends events.EventEmitter
     resetDnsSdResponse: ->
         @address = @getAddress()
         @localName = @serverName + @address.ipv4 
-        @dnsSdResponse = MDNSHelper.creatDnsSdResponse 0, @fullProtocol, @serverName, @serverPort, @txtRecord, @address, @localName
+        if @address.ipv4
+            @dnsSdResponse = MDNSHelper.creatDnsSdResponse 0, @fullProtocol, @serverName, @serverPort, @txtRecord, @address, @localName
+            @dnsSdKeepResponse = MDNSHelper.creatDnsSdKeepResponse 0, @fullProtocol, @serverName, @serverPort, @txtRecord, @address, @localName
 
     _start: ->
         if !@running 
             @address = @getAddress()
+            @resetDnsSdResponse()
             if @address.ipv4 && @dnsSdResponse
                 Log.d "Starting MDNSServer ..."
 
@@ -124,11 +128,11 @@ class mdnsSdServer extends events.EventEmitter
         Log.d "MDNSServer stop"
 
     keepActive: ->
-        @resetDnsSdResponse()
-        @dnsSdResponse.transactionID = 0
-        buff = new Buffer MDNSHelper.encodeMessage @dnsSdResponse
-        @socket.send buff, 0, buff.length, mdnsSdServer.MDNS_PORT, mdnsSdServer.MDNS_ADDRESS, =>
-            Log.i "mdnsResponse to #{mdnsSdServer.MDNS_ADDRESS}:#{mdnsSdServer.MDNS_PORT} done".red
+        if @dnsSdKeepResponse
+            @dnsSdKeepResponse.transactionID = 0
+            buff = new Buffer MDNSHelper.encodeMessage @dnsSdKeepResponse
+            @socket.send buff, 0, buff.length, mdnsSdServer.MDNS_PORT, mdnsSdServer.MDNS_ADDRESS, =>
+                Log.i "mdnsResponse to #{mdnsSdServer.MDNS_ADDRESS}:#{mdnsSdServer.MDNS_PORT} done".red
 
     listen: ->
         if not @running then return
@@ -137,9 +141,8 @@ class mdnsSdServer extends events.EventEmitter
         message = MDNSHelper.decodeMessage data
         if message.isQuery
             for question in message.questions
-                if question.name is @fullProtocol
+                if question.name.toLowerCase() is @fullProtocol.toLowerCase()
                     if question.type is MDNSHelper.TYPE_PTR
-                        @resetDnsSdResponse()
                         @dnsSdResponse.transactionID = message.transactionID
                         buff = new Buffer MDNSHelper.encodeMessage @dnsSdResponse
                         Log.i "mdns receive message: #{message}".red

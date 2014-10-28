@@ -187,15 +187,15 @@ class MDNS
             return bytesWritten
 
         writeIPAddress = (a) ->
-            parts = a.split(".");
+            parts = a.split(".")
             bytesWritten = 0
             if parts.length > 0
                 for i in [0 .. parts.length - 1]
                     bytesWritten += writeByte parseInt parts[i]
-            return bytesWritten;
+            return bytesWritten
 
         writeIP6Address = (a) ->
-            parts = a.split(":");
+            parts = a.split(":")
             zeroCount = 8 - parts.length
             for i in [0 .. parts.length - 1]
                 if parts[i]
@@ -204,11 +204,11 @@ class MDNS
                     while zeroCount >= 0
                         writeWord 0
                         zeroCount -= 1
-            return 16;
+            return 16
 
         writeStringArray = (parts, includeLastTerminator) ->
-            brokeEarly = false;
-            bytesWritten = 0;
+            brokeEarly = false
+            bytesWritten = 0
             if parts.length > 0
                 for i in [0 .. parts.length - 1]
                     remainingString = parts.slice(i).join("._-_.")
@@ -232,8 +232,8 @@ class MDNS
             return bytesWritten
 
         writeDNSName = (n) ->
-            parts = n.split(".");
-            return writeStringArray(parts, true);
+            parts = n.split(".")
+            return writeStringArray(parts, true)
 
         writeQuestion = (q) ->
             writeDNSName q.name
@@ -349,7 +349,7 @@ class MDNS
             if position + 1 > rawData.length
                 if not errored
                     errored = true
-            return rawData[position++];
+            return rawData[position++]
 
         consumeWord = ->
             return (consumeByte() << 8) | consumeByte()
@@ -382,7 +382,7 @@ class MDNS
             return parts.join "."
 
         consumeQuestion = ->
-            question = {};
+            question = {}
             question.name = consumeDNSName()
             question.type = consumeWord()
             question.class = consumeWord()
@@ -539,6 +539,66 @@ class MDNS
             class: MDNS.CLASS_IN,
             unicast: false
         return response 
+
+    @creatDnsSdKeepResponse: (transactionID, fullProtocol, serverName, port, txtRecord, address, localName) ->
+        response =
+            transactionID: transactionID, # max 65535
+            isQuery: false,
+            opCode: 0,
+            authoritativeAnswer: true,
+            truncated: false,
+            recursionDesired: false,
+            recursionAvailable: false,
+            responseCode: MDNS.RESPONSE_CODE_OK,
+            questions: [],
+            answers: [],
+            additionalRecords: [],
+            autorityRecords: []
+
+        response.answers.push
+            name: fullProtocol,
+            type: MDNS.TYPE_PTR,
+            class: MDNS.CLASS_IN,
+            flushCache: false,
+            timeToLive: 10,
+            ptr_domainName: serverName + "."+fullProtocol
+
+        response.answers.push
+            name: serverName + "." + fullProtocol,
+            type: MDNS.TYPE_SRV,
+            class: MDNS.CLASS_IN,
+            flushCache: false,
+            timeToLive: 10,
+            srv_priority: 0,
+            srv_weight: 0,
+            srv_port: port,
+            srv_target: localName + ".local"
+
+        response.answers.push
+            name: serverName + "." + fullProtocol,
+            type: MDNS.TYPE_TXT,
+            class: MDNS.CLASS_IN,
+            flushCache: false,
+            timeToLive: 10,
+            txt_texts: MDNS.map2txt txtRecord
+
+        response.answers.push
+            name: localName + ".local",
+            type: MDNS.TYPE_A,
+            class: MDNS.CLASS_IN,
+            flushCache: false,
+            timeToLive: 10,
+            a_address: address.ipv4
+
+        response.answers.push
+            name: "_services._dns-sd._udp.local",
+            type: MDNS.TYPE_PTR,
+            class: MDNS.CLASS_IN,
+            flushCache: false,
+            timeToLive: 4500,
+            ptr_domainName: fullProtocol
+
+        return response
 
     @creatDnsSdResponse: (transactionID, fullProtocol, serverName, port, txtRecord, address, localName) ->
         response =
