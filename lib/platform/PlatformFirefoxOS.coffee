@@ -51,13 +51,13 @@ class PlatformFirefoxOS extends Platform
             @sockets.add socket
             emitter = new JsonMessageEmitter socket, (message) =>
                 @_didReceiveSystemMessage message
-            socket.on 'end', ->
+            socket.on 'end', =>
                 Log.d "PAL sock closed!"
                 @sockets.remove socket
                 emitter = null
-            socket.on 'error', (exception) ->
+            socket.on 'error', (exception) =>
                 Log.e "PAL socket error: #{exception}"
-            socket.on 'data', (data) ->
+            socket.on 'data', (data) =>
                 Log.d "pal socket data: #{data}"
         @palServer.listen Config.FFOS_PAL_SERVER_PORT
 
