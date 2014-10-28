@@ -17,10 +17,10 @@
 net                     = rekuire "net"
 child_process           = rekuire "child_process"
 
-{ Log }                 = rekuire "castaway/util/Log"
+{ Log }                 = rekuire "log/Log"
 { Platform }            = rekuire "platform/Platform"
 { JsonMessageEmitter }  = rekuire "util/JsonMessageEmitter"
-{ HashSet }             = rekuire "lib/HashSet"
+{ HashSet }             = rekuire "util/HashSet"
 { Config }              = rekuire "dial/Config"
 
 class PlatformFirefoxOS extends Platform
