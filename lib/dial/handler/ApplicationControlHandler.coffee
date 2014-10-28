@@ -91,7 +91,7 @@ class ApplicationControlHandler
             Log.d "ApplicationControlHandler receive post:\n#{data}"
             if data
                 contentType = req.headers["content-type"]
-                if "application/json" isnt contentType
+                if not S(contentType).contains("application/json")
                     Log.e "content type must be application/json while posting data"
                     @_onResponse req, res, 400, null, null
                     return
@@ -149,7 +149,7 @@ class ApplicationControlHandler
                 res.end bodyContent
                 SessionManager.getInstance().sessionConnected session
             else
-                Log.e "bad post request: type is #{type}, appInfo is #{appInfo}"
+                Log.e "bad post request: type is #{type}, appInfo is #{JSON.stringify appInfo}"
                 @_onResponse req, res, 400, null, null
 
     _onLaunch: (appId, appInfo) ->
