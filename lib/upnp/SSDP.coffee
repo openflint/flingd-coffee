@@ -55,6 +55,7 @@ class SSDP extends events.EventEmitter
                 # and starts advertising.
                 #
     start: (ip, portno) ->
+        @ip = ip
         @_usns[@_udn] = @_udn
         @_httphost = "http://" + ip + ":" + portno
         Log.i "Will try to bind to 0.0.0.0:" + @_ssdpPort
@@ -121,7 +122,7 @@ class SSDP extends events.EventEmitter
             addr = @sock.address()
             Log.d "SSDP listening on http://#{addr.address}:#{addr.port}"
             Log.i "addMembership #{@_ssdpIp}"
-            @sock.addMembership @_ssdpIp
+            @sock.addMembership @_ssdpIp, @ip
             Log.i "setMulticastTTL #{@_ssdpTtl}"
             @sock.setMulticastTTL @_ssdpTtl
 
