@@ -22,7 +22,7 @@ global.rekuire      = require "rekuire"
 { NetworkChecker }  = rekuire "network/NetworkChecker"
 { Config }          = rekuire "dial/Config"
 
-main = ->
+run = ->
     Log.i "flingd is running!!!"
     Log.d "flingd is running!!!"
     Log.w "flingd is running!!!"
@@ -38,4 +38,4 @@ main = ->
 
     httpServer.start()
 
-main()
+module.exports.run = run

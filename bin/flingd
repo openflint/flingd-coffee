@@ -1,3 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env coffee
 
-coffee ../lib/index.coffee
+path = require "path"
+fs   = require "fs"
+
+lib = path.join(path.dirname(fs.realpathSync(__filename)), '../lib')
+require(lib + "/index.coffee").run()

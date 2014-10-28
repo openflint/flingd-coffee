@@ -19,6 +19,9 @@
         }
     ],
     "main": "lib/index.coffee",
+    "bin": {
+        "flingd": "./bin/flingd"
+    },
     "repository": {
         "type": "git",
         "url": "http://github.com/openflint/flingd-coffee"
