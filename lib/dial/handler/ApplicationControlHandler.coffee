@@ -63,8 +63,8 @@ class ApplicationControlHandler
         body.push "    <options allowStop='true'/>\n"
 
         app = ApplicationManager.getInstance().getAliveApplication()
-        if app
-            body.push "    <state>running</state>\n"
+        if app and (app.getAppId() is appId)
+            body.push "    <state>#{app.getAppStatus()}</state>\n"
             body.push app.getAdditionalData()
         else
             body.push "    <state>stopped</state>\n"
