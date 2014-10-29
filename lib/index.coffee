@@ -21,6 +21,7 @@ global.rekuire      = require "rekuire"
 { HTTPServer }      = rekuire "http/HTTPServer"
 { NetworkChecker }  = rekuire "network/NetworkChecker"
 { Config }          = rekuire "dial/Config"
+{ PeerServer }      = rekuire "peer"
 
 run = ->
     Log.i "flingd is running!!!"
@@ -37,5 +38,7 @@ run = ->
     dialServer.start()
 
     httpServer.start()
+
+    peerServer = new PeerServer { port: Config.PEERJS_SERVER_PORT }
 
 module.exports.run = run
