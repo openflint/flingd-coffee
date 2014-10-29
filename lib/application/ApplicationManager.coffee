@@ -48,6 +48,9 @@ class ApplicationManager extends events.EventEmitter
                 @launchingApplication = @penddingApplication.shift()
                 ApplicationManager.instance.stopApplication()
 
+    stopApplicationForce: ->
+        Platform.getInstance().stopApplication()
+
     stopTopApplication: ->
         app = @getCurrentApplication()
         if app

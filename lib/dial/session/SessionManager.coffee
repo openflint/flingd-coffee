@@ -84,6 +84,10 @@ class SessionManager extends Singleton
         session = @_getSession token
         session?.triggerTimer()
 
+    checkSession: (token) ->
+        session = @_getSession token
+        return session?
+
     _addSession:(token, session) ->
         @senderSessions.put token, session
         size = @senderSessions.size()

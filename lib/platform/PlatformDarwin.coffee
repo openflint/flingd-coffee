@@ -56,6 +56,7 @@ class PlatformDarwin extends Platform
         @chromeProcess.stderr.on 'data', (chunk) =>
 #            Log.e "darwin stderr: #{chunk}"
         @chromeProcess.on 'exit', () =>
+            app?.terminate()
             Log.i "darwin chrome exit!!!"
 
     stopApplication: (app) ->

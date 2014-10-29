@@ -38,4 +38,6 @@ class Config
 
     @FFOS_PAL_SERVER_PORT = 9440
 
+    @APPLICATION_INSTANCE = "run"
+
 module.exports.Config = Config

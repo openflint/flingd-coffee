@@ -65,6 +65,7 @@ class ApplicationControlHandler
         app = ApplicationManager.getInstance().getAliveApplication()
         if app and (app.getAppId() is appId)
             body.push "    <state>#{app.getAppStatus()}</state>\n"
+            body.push "    <link rel=\"run\" href=\"#{Config.APPLICATION_INSTANCE}\"/>\n"
             body.push app.getAdditionalData()
         else
             body.push "    <state>stopped</state>\n"
@@ -163,15 +164,33 @@ class ApplicationControlHandler
         return false
 
     _onDelete: (req, res, appId) ->
-        app = ApplicationManager.getInstance().getAliveApplication()
-        if app and (appId is app.getAppId())
-            if app.getAppInfo() and app.getAppInfo().useIpc
-                app.stop()
+        segs = url.parse req.url
+        instance = S(segs.path).replaceAll("/apps/", "").s
+        instance = S(instance).replaceAll(appId, "").s
+        instance = S(instance).replaceAll("/", "").s
+        token = req.headers["authorization"]
+        if instance
+            # stop the application
+            app = ApplicationManager.getInstance().getAliveApplication()
+            if app
+                if appId is app.getAppId()
+                    if not SessionManager.getInstance().checkSession token
+                        Log.d "invalided token [#{token}], stop #{appId} failed!!!"
+                        @_onResponse req, res, 400, null, null
+                        return
+                    if app.getAppInfo() and app.getAppInfo().useIpc
+                        app.stop()
+                    else
+                        app.terminate()
             else
-                app.terminate()
+                Log.d "application #{appId} maybe not running, stop it forced!!!"
+                ApplicationManager.getInstance().stopApplicationForce()
             @_onResponse req, res, 200, null, null
         else
-            @_onResponse req, res, 404, null, null
+            # disconnect the session
+            Log.d "token [#{token}] need disconnect."
+            SessionManager.getInstance().sessionDisconnectedByToken token
+            @_onResponse req, res, 200, null, null
 
     _onResponse: (req, res, statusCode, headers, body) ->
         if headers
