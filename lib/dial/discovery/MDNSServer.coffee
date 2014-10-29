@@ -36,7 +36,7 @@ class MDNSServer
         options.txtRecord =
             id: name
             ve: "02"
-            md: "matchStick dongle"
+            md: "MatchStick dongle"
             ic: "/setup/icon.png"
             ca: "5"
             fn: name
@@ -44,10 +44,10 @@ class MDNSServer
 
         if @advertisement && @advertisement.status
             Log.d "reset MDNSServer ..."
-            @advertisement.set mdns.tcp("matchstick"), @port, options
+            @advertisement.set mdns.tcp("openflint"), @port, options
         else
             Log.d "create MDNSServer ..."
-            @advertisement = mdns.createAdvertisement mdns.tcp("matchstick"), @port, options
+            @advertisement = mdns.createAdvertisement mdns.tcp("openflint"), @port, options
             @advertisement.start()
 
     resetServer: (name) ->
