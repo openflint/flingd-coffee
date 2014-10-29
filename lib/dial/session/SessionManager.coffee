@@ -33,9 +33,11 @@ class SessionManager extends Singleton
         Log.d "SessionManager is ready!!!"
         @senderSessions = new HashTable
         @receiverSession = null
+        @pendingConnectedSession = new HashTable
 
     clearReceiverSession: ->
         @receiverSession = null
+        @pendingConnectedSession.clear()
 
     setReceiverSession: (appId, channel) ->
         if (not appId) or (not channel)
@@ -43,6 +45,11 @@ class SessionManager extends Singleton
             return
         token = @_generateSessionToken()
         @receiverSession = new ReceiverSession this, token, appId, channel
+        keys = @pendingConnectedSession.keys()
+        for key in keys
+            session = @pendingConnectedSession.get key
+            @receiverSession.senderConnected session
+        @pendingConnectedSession.clear()
 
     sessionConnected: (session) ->
         # filter exist session
@@ -53,7 +60,10 @@ class SessionManager extends Singleton
         Log.d "session #{token} connected!"
         @_addSession token, session
         session.triggerTimer()
-        @receiverSession?.senderConnected session
+        if @receiverSession
+            @receiverSession.senderConnected session
+        else
+            @pendingConnectedSession.put session.getToken(), session
 
     sessionDisconnectedByToken: (token) ->
         session = @_getSession token

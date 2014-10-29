@@ -72,11 +72,12 @@ class ReceiverSession extends Session
                 app.setAdditionalData data.additionaldata
             # heartbeat message
             else if data.type is "heartbeat"
-                Log.d "app #{@appId} ping/pong!!!"
+                Log.d "received from #{@appId}: #{data.heartbeat}}!!!"
                 if data.heartbeat is "ping"
+                    # receiving heartbeat passively, return "pong" directly
                     @_onHeartbeat "pong"
                 else if data.heartbeat is "pong"
-                    @_onHeartbeat "ping"
+                    @triggerTimer()
                 else
                     Log.e "ping/pong message illegal: #{data.heartbeat}"
 
@@ -109,12 +110,12 @@ class ReceiverSession extends Session
     _startHeartbeat: ->
         @_reply
             type: "startHeartbeat"
-            appid: @app.getAppId()
+            appid: @appId
             interval: Config.RECEIVER_SESSION_PP_INTERVAL
         @_onHeartbeat "ping"
         @triggerTimer()
         setInterval ( =>
-                @_ping()
+                @_onHeartbeat "ping"
             ), Config.RECEIVER_SESSION_PP_INTERVAL
 
     #
@@ -122,11 +123,12 @@ class ReceiverSession extends Session
     #   heartbeat - "ping" or "pong"
     #
     _onHeartbeat: (heartbeat) ->
+        Log.d "send to receiver #{@appId} : #{heartbeat}}!!!"
         msg =
             type: "heartbeat"
             appid: @appId
             heartbeat: heartbeat
-        @reply msg
+        @_reply msg
 
     _onTimeout: ->
         super()
