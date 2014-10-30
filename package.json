@@ -34,7 +34,8 @@
         "string": "2.2.0",
         "uuid": "2.0.1",
         "ws": "0.4.32",
-        "peer": "0.2.7"
+        "peer": "0.2.7",
+        "stringrouter": "0.3.3"
     },
     "devDependencies": {
     },
