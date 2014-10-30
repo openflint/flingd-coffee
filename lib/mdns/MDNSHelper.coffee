@@ -422,21 +422,6 @@ class MDNS
             extraDataLength = consumeWord()
 
             switch resource.type
-                when MDNS.TYPE_NSEC
-                    resourceData = {}
-                    resourceData.nsec_domainName = consumeDNSName()
-                    consumeByte()
-                    subLength = consumeByte()
-                    bitString = ""
-                    for i in [0..subLength-1]
-                        bitString += MDNS.pad(consumeByte(),8,2)
-                    nsec_types = []
-                    for i in [0..bitString.length-1]
-                        if bitString[i] == "1"
-                            nsec_types.push i
-                    resourceData.nsec_types = nsec_types
-                    resource.resourceData = resourceData
-
                 when MDNS.TYPE_TXT
                     resourceData = []
                     totalLength = 0

@@ -118,7 +118,7 @@ class mdnsSdServer extends events.EventEmitter
         @startLoop = setInterval (=>
             @_start() ), 5000
         @keepActiveLoop = setInterval (=>
-            @keepActive() ), 10000
+            @keepActive() ), 8000
 
     stop: ->
         @socket.close()
@@ -131,15 +131,20 @@ class mdnsSdServer extends events.EventEmitter
         if @dnsSdKeepResponse
             @dnsSdKeepResponse.transactionID = 0
             buff = new Buffer MDNSHelper.encodeMessage @dnsSdKeepResponse
-            @socket.send buff, 0, buff.length, mdnsSdServer.MDNS_PORT, mdnsSdServer.MDNS_ADDRESS, =>
-                Log.i "mdnsResponse to #{mdnsSdServer.MDNS_ADDRESS}:#{mdnsSdServer.MDNS_PORT} done".red
+            if @status
+                @socket.send buff, 0, buff.length, mdnsSdServer.MDNS_PORT, mdnsSdServer.MDNS_ADDRESS, =>
+                    Log.i "mdnsResponse to #{mdnsSdServer.MDNS_ADDRESS}:#{mdnsSdServer.MDNS_PORT} done".red
 
     listen: ->
         if not @running then return
 
     onReceive: (data, address, port) ->
-        message = MDNSHelper.decodeMessage data
-        if message.isQuery
+        try
+            message = MDNSHelper.decodeMessage data
+        catch error
+            Log.d  "error: #{error}"
+            Log.d "#{address}: data #{data}"
+        if message && message.isQuery
             for question in message.questions
                 if question.name.toLowerCase() is @fullProtocol.toLowerCase()
                     if question.type is MDNSHelper.TYPE_PTR
