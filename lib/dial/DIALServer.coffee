@@ -39,7 +39,7 @@ class DIALServer extends events.EventEmitter
         @httpServer.addRoute /\/ssdp\/device-desc.xml$/, DeviceDescHandler
         @httpServer.addRoute /\/apps\/[^\/]+$/, ApplicationControlHandler
         @httpServer.addRoute /\/apps\/[^\/]+\/run$/, ApplicationControlHandler
-        @httpServer.addRoute /\/receiver$/, ReceiverConnectionHandler
+        @httpServer.addRoute /\/receiver\/[^\/]+$/, ReceiverConnectionHandler
         @httpServer.addRoute /\/system\/control$/, SystemControlHandler
 
         @ssdpServer.start()

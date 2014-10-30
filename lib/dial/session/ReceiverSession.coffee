@@ -14,10 +14,13 @@
 #    limitations under the License.
 #
 
+os                      = require "os"
+
 { Log }                 = rekuire "log/Log"
 { Session }             = rekuire "dial/session/Session"
 { Config }              = rekuire "dial/Config"
 { ApplicationManager }  = rekuire "application/ApplicationManager"
+{ Platform }            = rekuire "platform/Platform"
 
 class ReceiverSession extends Session
 
@@ -62,6 +65,7 @@ class ReceiverSession extends Session
                 Log.d "app #{@appId} is registered"
                 # application is launched, and start heartbeat
                 app.started()
+                @_onRegister()
                 @_startHeartbeat()
             # receiver application unregister itself, fling-service stop it
             else if data.type is "unregister"
@@ -107,6 +111,21 @@ class ReceiverSession extends Session
             type: "senderdisconnected"
             appid: @appId
             token: senderSession.getToken()
+
+    _onRegister: ->
+        ip = []
+        networkInterfaces = os.networkInterfaces()
+        for iface of networkInterfaces
+            for addressInfo in networkInterfaces[iface]
+                if not addressInfo.internal and addressInfo.family is "IPv4"
+                    ip.push addressInfo.address
+        @_reply
+            type: "registerok"
+            appid: "~browser"
+            service_info:
+                ip: ip
+                uuid: Platform.getInstance().getDeviceUUID()
+                device_name: Platform.getInstance().getDeviceName()
 
     _startHeartbeat: ->
         @_reply

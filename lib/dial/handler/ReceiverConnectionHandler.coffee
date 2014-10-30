@@ -30,7 +30,7 @@ class ReceiverConnectionHandler
         segs = url.parse req.url
         appId = S(segs.path).replaceAll("/receiver", "").s
         app = ApplicationManager.getInstance().getAliveApplication()
-
+        Log.d "ReceiverConnectionHandler receive connection: #{appId}"
         # check appId and application
         if appId
             appId = S(appId).replaceAll("/", "").s

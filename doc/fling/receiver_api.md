@@ -15,10 +15,14 @@ receiver should register itself immediately once websocket connected.
     }
 
     {
-        "type":"service_info",
+        "type":"registerok",
         "appid":"~browser",
-        "detail": {
-            "ip": "10.0.0.1"
+        "service_info": {
+            "ip": [
+                "10.0.0.1"
+            ]
+            "uuid": "EE2287DB-D10D-FECD-667B-8342AD095C33",
+            "device_name": "matchstick dongle"
         }
     }
 

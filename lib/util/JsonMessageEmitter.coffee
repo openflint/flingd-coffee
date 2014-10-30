@@ -54,7 +54,7 @@ class JsonMessageEmitter
                 if @buffer.length >= @messageSize
                     msgBuffer = @buffer.slice 0, @messageSize
                     msg = JSON.parse msgBuffer.toString()
-                    if @callback?
+                    if @callback
                         @callback msg
                     if @buffer.length > @messageSize
                         @buffer = @buffer.slice @messageSize
