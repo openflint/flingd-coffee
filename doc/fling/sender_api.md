@@ -33,7 +33,7 @@
           <name>AppName</name>  
           <options allowStop="true"/>  
           <state>running</state>
-          <link rel="run" href="run"/>
+          <link rel="run" href="run"/> # sender should store `href` for further operation
           <additionalData> # application specific data
             <key1>value1</key1>  
             <key2>value1</key2>  
@@ -41,6 +41,7 @@
             ......
           </additionalData> 
         </service>
+> sender should store `href` for further operation
 
 ### launch application
 * request
@@ -76,17 +77,21 @@
 
         #if appid invalid
         404 NOT FOUND
+> The `token` should be passed in each request later.
 
 ### stop application
 * request
 
+        # disconnect with fling service
         DELETE http://192.168.1.1:9973/apps/appid
-        DELETE http://192.168.1.1:9973/apps/appid/run
+
+        # stop the certain application. remember to pass the token in http headers.
+        DELETE http://192.168.1.1:9973/apps/appid/href
 
 * response
 
         200 OK
-        404 NOT FOUND
+        400 BAD REQUEST # missing token or other errors
 
 ### system control
 

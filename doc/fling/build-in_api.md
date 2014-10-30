@@ -23,7 +23,7 @@ pal message format
             "type":"LAUNCH_RECEIVER | STOP_RECEIVER",
             "app_id": "~native"
             "app_info": {
-                "pakcage_name": "com.matchstick.ffos.settings"
+                "url": "app:?com.firefoxos.settings"
             }
         }
 

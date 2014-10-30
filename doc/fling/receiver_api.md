@@ -3,7 +3,7 @@
 ### open communication
 issue a websocket connection when the application launched
 
-    ws.open("http://localhost:9431/receiver")
+    ws.open("localhost:9431/receiver")
 
 ### reciever register
 receiver should register itself immediately once websocket connected.
@@ -12,6 +12,14 @@ receiver should register itself immediately once websocket connected.
     {
         "type":"register",
         "appid":"~browser"
+    }
+
+    {
+        "type":"service_info",
+        "appid":"~browser",
+        "detail": {
+            "ip": "10.0.0.1"
+        }
     }
 
 ### reciever unregister
