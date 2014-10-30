@@ -34,7 +34,7 @@ class JsonMessageEmitter
             null
 
         socket.on "error", (err) ->
-            Log.log "JsonMessageEmitter Error: ", err.toString()
+            Log.e "JsonMessageEmitter Error: ", err.toString()
 
         socket.on "data", (data) =>
             @_didReceiveNetworkData(data)
