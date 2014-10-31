@@ -27,6 +27,7 @@ class ReceiverSession extends Session
             throw new Error "cannot create a ReceiverSession with a null channel!!!"
 
         super sessionManager, token, appId
+        @ppTimerId = null
         @timeout = Config.RECEIVER_SESSION_TIMEOUT
         @tag = "ReceiverSession"
 
@@ -114,7 +115,7 @@ class ReceiverSession extends Session
             interval: Config.RECEIVER_SESSION_PP_INTERVAL
         @_onHeartbeat "ping"
         @triggerTimer()
-        setInterval ( =>
+        @ppTimerId = setInterval ( =>
                 @_onHeartbeat "ping"
             ), Config.RECEIVER_SESSION_PP_INTERVAL
 
@@ -145,6 +146,8 @@ class ReceiverSession extends Session
             if app and (app.getAppId() is @appId)
                 app.terminate()
         @_clearTimer()
+        if @ppTimerId
+            clearTimeout @ppTimerId
         @sessionManager.clearReceiverSession()
         @channel.close()
 
