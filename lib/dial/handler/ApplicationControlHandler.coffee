@@ -110,6 +110,12 @@ class ApplicationControlHandler
                     session = SessionManager.getInstance().createSenderSession appId
                     token = session.getToken()
 
+                if appInfo and appInfo.url
+                    hostIp = req.connection.remoteAddress or
+                        req.socket.remoteAddress or
+                        req.connection.socket.remoteAddress
+                    appInfo.url = appInfo.url.replace "${REMOTE_ADDRESS}", hostIp
+
                 switch type
                     when "launch"
                         runningApp = ApplicationManager.getInstance().getCurrentApplication()
@@ -125,6 +131,7 @@ class ApplicationControlHandler
                         runningApp = ApplicationManager.getInstance().getCurrentApplication()
                         if runningApp and (runningApp.getAppId() is appId)
                             runningApp.stop()
+
                             if @_onLaunch appId, appInfo
                                 statusCode = 201
                             else
