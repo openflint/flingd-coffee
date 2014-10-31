@@ -11,8 +11,10 @@
 # distributed under the License is distributed on an "AS-IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-#    limitations under the License.
+# limitations under the License.
 #
+
+{ Log } = rekuire "log/Log"
 
 class Channel
 
@@ -22,27 +24,21 @@ class Channel
     close: ->
         @rxconn.close() # senders connection close soon
 
-    closeSenders: ->
-        for senderId, txconn of @txconn
-            console.log 'closing sender ' + senderId
-            txconn.close()
-        @txconn = {}
-
     setReceiverConn: (rxconn) ->
         @rxconn = rxconn
         @rxconn.on 'message', (message) =>
-            console.log 'Receive receiver message ', message
+            Log.i 'Receive receiver message : ', message
             messageObj = JSON.parse message
             senderId = messageObj.senderId
             txconn = @txconn[senderId]
             if txconn
                 txconn.send JSON.stringify message.data
             else
-                @respReceiverError 'Invalid sender id'
+                @_respReceiverError 'Invalid sender id'
 
         @rxconn.on 'close', =>
             @rxconn = null
-            @closeSenders()
+            @_closeSenders()
 
     addSenderConn: (senderId, senderConn) ->
         if @rxconn
@@ -55,7 +51,7 @@ class Channel
                 senderId: senderId
 
             senderConn.on 'message', (message) =>
-                console.log "Receive from sender ", message;
+                Log.i "Receive from sender ", message;
                 @rxconn?.send JSON.stringify
                     type: 'message'
                     senderId: senderId
@@ -65,14 +61,20 @@ class Channel
                 @rxconn?.send JSON.stringify
                     type: 'senderDisconnected'
                     senderId: senderId
-                @removeSenderConn senderId
+                @_removeSenderConn senderId
         else
             senderConn.close()
 
-    removeSenderConn: (senderId) ->
+    _closeSenders: ->
+        for senderId, txconn of @txconn
+            Log.i 'closing sender ' + senderId
+            txconn.close()
+        @txconn = {}
+
+    _removeSenderConn: (senderId) ->
         delete @txconn[senderId]
 
-    respReceiverError: (message) ->
+    _respReceiverError: (message) ->
         @rxconn.send JSON.stringify
             type: 'error'
             message: message
@@ -92,15 +94,15 @@ class WebSocketServer
 
         @wss = new (require('ws').Server) { port: @port }
         @wss.on 'connection', (ws) =>
-            console.log 'New connection ', ws.upgradeReq.url
+            Log.i 'New connection ', ws.upgradeReq.url
             router.dispatch ws.upgradeReq.url, (err, packet) =>
                 if not err
                     channelId = packet.params.channelId
                     senderId = packet.params.senderId
                     if senderId
-                        @newSenderConnection channelId, senderId, ws
+                        @_newSenderConnection channelId, senderId, ws
                     else
-                        @newReceiverConnection channelId, ws
+                        @_newReceiverConnection channelId, ws
                 else
                     ws.send JSON.stringify
                         type: 'error'
@@ -108,23 +110,23 @@ class WebSocketServer
                     ws.close()
 
     # close channel
-    closeChannel: (channelId) ->
-        console.log "close channel : ", channelId
+    _closeChannel: (channelId) ->
+        Log.i "close channel : ", channelId
         @channels[channelId].close()
         delete @channels[channelId]
 
     # receiver
-    newReceiverConnection: (channelId, ws) ->
-        console.log "New receiver connection ", channelId
+    _newReceiverConnection: (channelId, ws) ->
+        Log.i "New receiver connection ", channelId
 
-        @closeChannel channelId if @channels[channelId]
+        @_closeChannel channelId if @channels[channelId]
 
         @channels[channelId] = new Channel channelId
         @channels[channelId].setReceiverConn ws
 
     # sender
-    newSenderConnection: (channelId, senderId, ws) ->
-        console.log "New sender connection ", channelId, senderId
+    _newSenderConnection: (channelId, senderId, ws) ->
+        Log.i "New sender connection ", channelId, senderId
         if @channels[channelId]
             @channels[channelId].addSenderConn senderId, ws
         else
