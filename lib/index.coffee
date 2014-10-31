@@ -23,6 +23,7 @@ global.rekuire      = require "rekuire"
 { Config }          = rekuire "dial/Config"
 { PeerServer }      = rekuire "peer"
 { WebSocketServer } = rekuire "comm/WebSocketServer"
+{ SocketIOServer }  = rekuire "comm/SocketIOServer"
 
 run = ->
     Log.i "flingd is running!!!"
@@ -44,5 +45,8 @@ run = ->
 
     websocketServer = new WebSocketServer { port: Config.WEBSOCKET_SERVER_PORT }
     websocketServer.start()
+
+    socketioServer = new SocketIOServer  { port: Config.SOCKET_IO_SERVER_PORT }
+    socketioServer.start()
 
 module.exports.run = run
