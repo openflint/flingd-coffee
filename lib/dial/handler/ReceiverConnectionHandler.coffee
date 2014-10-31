@@ -14,6 +14,9 @@
 #    limitations under the License.
 #
 
+S                       = require "string"
+url                     = require "url"
+
 { Log }                 = rekuire "log/Log"
 { ApplicationManager }  = rekuire "application/ApplicationManager"
 { SessionManager }      = rekuire "dial/session/SessionManager"
@@ -23,11 +26,26 @@ class ReceiverConnectionHandler
     constructor: ->
 
     onWebSocketRequest: (req, client) ->
-        app = ApplicationManager.getInstance().getLaunchingApplication()
-        if app
-            SessionManager.getInstance().setReceiverSession app.getAppId(), client
+        checked = true
+        segs = url.parse req.url
+        appId = S(segs.path).replaceAll("/receiver", "").s
+        app = ApplicationManager.getInstance().getAliveApplication()
+
+        # check appId and application
+        if appId
+            appId = S(appId).replaceAll("/", "").s
+            if (not app) or (appId isnt app?.getAppId())
+                checked = false
         else
-            Log.w "no launching application, close client!!!"
+            if not app
+                checked = false
+            else
+                appId = app.getAppId()
+
+        if checked
+            SessionManager.getInstance().setReceiverSession appId, client
+        else
+            Log.e "receiver channel checked failed, close websocket!!!"
             client.close()
 
 module.exports.ReceiverConnectionHandler = ReceiverConnectionHandler

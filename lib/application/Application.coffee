@@ -25,6 +25,7 @@ class Application extends events.EventEmitter
     constructor: (@appId, @appInfo) ->
         @state = "stopped"
         @timerId = null
+        @additionalData = ""
 
     getAppId: ->
         return @appId
@@ -39,12 +40,9 @@ class Application extends events.EventEmitter
     setAdditionalData: (data) ->
         if not data
             return
-        additionalData = JSON.parse data
-        @additionalData = ""
-        if additionalData
-            @additionalData += "<additionalData>\n"
-            @additionalData += jsontoxml(additionalData)
-            @additionalData += "</additionalData>\n"
+        @additionalData += "<additionalData>\n"
+        @additionalData += jsontoxml(data)
+        @additionalData += "</additionalData>\n"
 
     getAdditionalData: ->
         @additionalData
