@@ -35,16 +35,16 @@ class Session
 
     triggerTimer: ->
         Log.i "#{@tag}:#{@token} trigger timer"
-        @_clearTimer()
+        @clearTimer()
         @timeoutId = setTimeout (=>
                 @_onTimeout()
             ), @timeout
 
-    _onTimeout: ->
-        Log.d "#{@tag}:#{@token} is timeout!!!"
-
-    _clearTimer: ->
+    clearTimer: ->
         if @timeoutId
             clearTimeout @timeoutId
+
+    _onTimeout: ->
+        Log.d "#{@tag}:#{@token} is timeout!!!"
 
 module.exports.Session = Session

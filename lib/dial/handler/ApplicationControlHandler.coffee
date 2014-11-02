@@ -116,11 +116,21 @@ class ApplicationControlHandler
                         req.connection.socket.remoteAddress
                     appInfo.url = appInfo.url.replace "${REMOTE_ADDRESS}", hostIp
 
+                app = ApplicationManager.getInstance().getAliveApplication()
                 switch type
                     when "launch"
-                        runningApp = ApplicationManager.getInstance().getCurrentApplication()
-                        if runningApp
-                            statusCode = 200
+                        if app
+                            if app.getAppId() isnt appId
+                                Log.w "#{app.getAppId()} is interrupted, #{appId} will be launched"
+                                app.stop()
+                                if @_onLaunch appId, appInfo
+                                    statusCode = 201
+                                else
+                                    @_onResponse req, res, 400, null, null
+                                    return
+                            else
+                                Log.w "#{app.getAppId()} is running, ignore launch"
+                                statusCode = 200
                         else
                             if @_onLaunch appId, appInfo
                                 statusCode = 201
@@ -128,13 +138,17 @@ class ApplicationControlHandler
                                 @_onResponse req, res, 400, null, null
                                 return
                     when "relaunch"
-                        runningApp = ApplicationManager.getInstance().getCurrentApplication()
-                        if runningApp and (runningApp.getAppId() is appId)
-                            runningApp.stop()
-
-                            if @_onLaunch appId, appInfo
-                                statusCode = 201
+                        if app
+                            if app.getAppId() is appId
+                                Log.w "#{appId} is interrupted, it will be relaunched"
+                                app.stop()
+                                if @_onLaunch appId, appInfo
+                                    statusCode = 201
+                                else
+                                    @_onResponse req, res, 400, null, null
+                                    return
                             else
+                                Log.e "#{appId} isn't running, cannot relaunch!!!"
                                 @_onResponse req, res, 400, null, null
                                 return
                         else
@@ -142,7 +156,14 @@ class ApplicationControlHandler
                             @_onResponse req, res, 400, null, null
                             return
                     when "join"
-                        statusCode = 200
+                        if app
+                            if app.getAppId() is appId
+                                statusCode = 200
+                            else
+                                Log.e "appid not matched, cannot join!!!"
+                        else
+                            Log.e "appid isn't running, cannot join!!!"
+
                 body =
                     token: token
                     interval: Config.SENDER_SESSION_PP_INTERVAL

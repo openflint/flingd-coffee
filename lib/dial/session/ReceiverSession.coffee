@@ -164,7 +164,7 @@ class ReceiverSession extends Session
             app = ApplicationManager.getInstance().getCurrentApplication()
             if app and (app.getAppId() is @appId)
                 app.terminate()
-        @_clearTimer()
+        @clearTimer()
         if @ppTimerId
             clearTimeout @ppTimerId
         @sessionManager.clearReceiverSession()

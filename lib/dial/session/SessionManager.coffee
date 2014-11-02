@@ -71,6 +71,7 @@ class SessionManager extends Singleton
 
     sessionDisconnected: (session) ->
         if session
+            sesson.clearTimer()
             @_removeSession session.getToken()
             @receiverSession?.senderDisconnected session
 
