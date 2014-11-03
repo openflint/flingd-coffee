@@ -4,7 +4,7 @@
 
 * request
 
-        GET http://192.168.1.1:9973/apps/appid
+        GET http://192.168.1.1:9431/apps/appid
         Accept: application/xml; charset=utf8
         Authorization: EE2287DB-D10D-FECD-667B-8342AD095C33 # if present
 
@@ -46,7 +46,7 @@
 ### launch application
 * request
 
-        POST http://192.168.1.1:9973/apps/appid
+        POST http://192.168.1.1:9431/apps/appid
         Content-Type: application/json
         
         {
@@ -83,10 +83,10 @@
 * request
 
         # disconnect with fling service
-        DELETE http://192.168.1.1:9973/apps/appid
+        DELETE http://192.168.1.1:9431/apps/appid
 
         # stop the certain application. remember to pass the token in http headers.
-        DELETE http://192.168.1.1:9973/apps/appid/href
+        DELETE http://192.168.1.1:9431/apps/appid/href
 
 * response
 
@@ -97,7 +97,7 @@
 
 * request
 
-        POST http://192.168.1.1:9973/system/control
+        POST http://192.168.1.1:9431/system/control
         Content-Type: application/json
         
         {
