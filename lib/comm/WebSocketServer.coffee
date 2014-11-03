@@ -30,11 +30,15 @@ class Channel
             Log.i 'Receive receiver message : ', message
             messageObj = JSON.parse message
             senderId = messageObj.senderId
-            txconn = @txconn[senderId]
-            if txconn
-                txconn.send JSON.stringify message.data
+            if "*:*" is senderId
+                for own _, conn of @txconn
+                    conn.send JSON.stringify messageObj.data
             else
-                @_respReceiverError 'Invalid sender id'
+                txconn = @txconn[senderId]
+                if txconn
+                    txconn.send JSON.stringify message.data
+                else
+                    @_respReceiverError 'Invalid sender id'
 
         @rxconn.on 'close', =>
             @rxconn = null
