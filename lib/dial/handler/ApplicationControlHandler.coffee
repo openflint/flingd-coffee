@@ -43,6 +43,8 @@ class ApplicationControlHandler
                     @_onPost req, res, appId
                 when "DELETE"
                     @_onDelete req, res, appId
+                when "OPTIONS"
+                    @_onOptions req, res, appId
                 else
                     Log.e "Unsupport http method: #{method}"
                     @_onResponse req, res, 400, null, null
@@ -78,6 +80,7 @@ class ApplicationControlHandler
             "Content-Type": "application/xml"
             "Connection": "keep-alive"
             "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
+            "Access-Control-Allow-Origin": "*"
             "Cache-Control": "no-cache, must-revalidate, no-store"
             "Content-Length": bodyContent.length
         @_onResponse req, res, 200, headers, bodyContent
@@ -169,13 +172,14 @@ class ApplicationControlHandler
                     interval: Config.SENDER_SESSION_PP_INTERVAL
                 bodyContent = JSON.stringify body
                 Log.d "response body ->\n#{bodyContent}"
-                res.writeHead statusCode,
+                headers =
                     "Content-Type": "application/json"
                     "Connection": "keep-alive"
                     "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
+                    "Access-Control-Allow-Origin": "*"
                     "Cache-Control": "no-cache, must-revalidate, no-store"
                     "Content-Length": bodyContent.length
-                res.end bodyContent
+                @_onResponse req, res, statusCode, headers, bodyContent
                 SessionManager.getInstance().sessionConnected session
             else
                 Log.e "bad post request: type is #{type}, appInfo is #{JSON.stringify appInfo}"
@@ -219,6 +223,17 @@ class ApplicationControlHandler
             Log.d "token [#{token}] need disconnect."
             SessionManager.getInstance().sessionDisconnectedByToken token
             @_onResponse req, res, 200, null, null
+
+    _onOptions: (req, res, appId) ->
+        headers =
+            "Connection": "keep-alive"
+            "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
+            "Cache-Control": "no-cache, must-revalidate, no-store"
+            "Access-Control-Allow-Origin": "*"
+            "Content-Length": "0"
+        @_onResponse req, res, 200, headers, null
+
 
     _onResponse: (req, res, statusCode, headers, body) ->
         if headers
