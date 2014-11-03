@@ -69,11 +69,13 @@ class Application extends events.EventEmitter
         @emit "onstarting", this
         if not @appInfo.useIpc
             @started()
-            if @appInfo.maxInactive
+            if @appInfo.maxInactive > 0
                 callback = =>
                     Log.d "maxInactive timeout, terminate application"
                     @terminate()
                 @timerId = setTimeout callback, @appInfo.maxInactive
+            else
+                Log.i "maxInactive is #{@appInfo.maxInactive}, alive forever"
         else
             callback = =>
                 Log.d "starting timeout, terminate application"
