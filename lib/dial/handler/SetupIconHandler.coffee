@@ -23,11 +23,31 @@ class SetupIconHandler extends events.EventEmitter
     @img = null
 
     constructor: ->
-        SetupIconHandler.img = ResourceManager.getRes "MatchStick.png"
+        if not SetupIconHandler.img
+            SetupIconHandler.img = ResourceManager.getRes "MatchStick.png"
 
     onHttpRequest: (req, res) ->
+        switch req.method
+            when "GET", "POST"
+                @_onResponse req, res
+            when "OPTIONS"
+                headers =
+                    "Access-Control-Allow-Method": "GET, POST, OPTIONS"
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
+                    "Cache-Control": "no-cache, must-revalidate, no-store"
+                    "Access-Control-Allow-Origin": "*"
+                    "Content-Length": "0"
+                res.writeHead 200, headers
+                res.end()
+            else
+                Log.e "Unsupport http method: #{method}"
+                res.writeHead 400
+                res.end()
+
+    _onResponse: (req, res) ->
         res.writeHead 200,
             "Content-Type": "image/png"
+            "Access-Control-Allow-Origin": "*"
         res.write SetupIconHandler.img, "binary"
         res.end()
 

@@ -61,12 +61,33 @@ device_desc = """
 class DeviceDescHandler
 
     onHttpRequest: (req, res) ->
+        switch req.method
+            when "GET", "POST"
+                @_onResponse req, res
+            when "OPTIONS"
+                headers =
+                    "Access-Control-Allow-Method": "GET, POST, OPTIONS"
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
+                    "Cache-Control": "no-cache, must-revalidate, no-store"
+                    "Access-Control-Allow-Origin": "*"
+                    "Content-Length": "0"
+                res.writeHead 200, headers
+                res.end()
+            else
+                Log.e "Unsupport http method: #{method}"
+                res.writeHead 400
+                res.end()
+
+    _onResponse: (req, res) ->
         desc = device_desc
         host = req.headers.host
         name = Platform.getInstance().getDeviceName()
         uuid = Platform.getInstance().getDeviceUUID()
         if (not name) or (not uuid)
-            res.writeHead 404
+            res.writeHead 404,
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+                "Access-Control-Allow-Origin": "*"
+                "Content-Length": "0"
             res.end()
             return
 
@@ -83,11 +104,11 @@ class DeviceDescHandler
 
         buff = new Buffer desc
         res.writeHead 200,
-            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-            "Access-Control-Expose-Headers": "Application-URL",
-            "Application-URL": "http://" + host + "/apps",
-            "Access-Control-Allow-Origin": "http://www.matchstick.tv",
-            "Content-Type": "application/xml",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+            "Access-Control-Expose-Headers": "Application-URL"
+            "Application-URL": "http://" + host + "/apps"
+            "Access-Control-Allow-Origin": "*"
+            "Content-Type": "application/xml"
             "Content-Length": buff.length
         res.end buff
 
