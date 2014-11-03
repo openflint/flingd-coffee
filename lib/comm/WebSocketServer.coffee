@@ -32,11 +32,11 @@ class Channel
             senderId = messageObj.senderId
             if "*:*" is senderId
                 for own _, conn of @txconn
-                    conn.send JSON.stringify messageObj.data
+                    conn.send messageObj.data
             else
                 txconn = @txconn[senderId]
                 if txconn
-                    txconn.send JSON.stringify messageObj.data
+                    txconn.send messageObj.data
                 else
                     @_respReceiverError 'Invalid sender id'
 
