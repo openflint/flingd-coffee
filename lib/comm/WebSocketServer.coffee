@@ -36,7 +36,7 @@ class Channel
             else
                 txconn = @txconn[senderId]
                 if txconn
-                    txconn.send JSON.stringify message.data
+                    txconn.send JSON.stringify messageObj.data
                 else
                     @_respReceiverError 'Invalid sender id'
 
