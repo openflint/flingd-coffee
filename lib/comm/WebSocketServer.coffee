@@ -22,7 +22,8 @@ class Channel
         @txconn = {}
 
     close: ->
-        @rxconn.close() # senders connection close soon
+        @_closeSenders()
+        @rxconn?.close() # senders connection close soon
 
     setReceiverConn: (rxconn) ->
         @rxconn = rxconn
