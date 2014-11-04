@@ -50,43 +50,6 @@ class Application extends events.EventEmitter
     getAppInfo: ->
         return @appInfo
 
-    onStopping: ->
-        @setAppStatus "stopping"
-        @emit "onstopping", this
-        callback = =>
-            Log.d "stopping timeout, terminate application"
-            @stopped()
-        if @appInfo.useIpc
-            @timerId = setTimeout callback, 10 * 1000 #stopping should be done in 10s
-
-    onStopped: ->
-        @setAppStatus "stopped"
-        @emit "onstopped", this
-        @clearTimer()
-
-    onStarting: ->
-        @setAppStatus "starting"
-        @emit "onstarting", this
-        if not @appInfo.useIpc
-            @started()
-            if @appInfo.maxInactive > 0
-                callback = =>
-                    Log.d "maxInactive timeout, terminate application"
-                    @terminate()
-                @timerId = setTimeout callback, @appInfo.maxInactive
-            else
-                Log.i "maxInactive is #{@appInfo.maxInactive}, alive forever"
-        else
-            callback = =>
-                Log.d "starting timeout, terminate application"
-                @terminate()
-            @timerId = setTimeout callback, 30 * 1000 #starting should be done in 30s
-
-    onStarted: ->
-        @setAppStatus "running"
-        @emit "onstarted", this
-        @clearTimer()
-
     start: ->
         ApplicationManager.getInstance().launchApplication this
 
@@ -96,9 +59,32 @@ class Application extends events.EventEmitter
     started: ->
         ApplicationManager.getInstance().emit "appstarted", this
 
+    onStarting: ->
+        @setAppStatus "starting"
+        @emit "onstarting", this
+        if not @appInfo.useIpc
+            @started()
+            if @appInfo.maxInactive > 0
+                callback = =>
+                    Log.d "maxInactive timeout, terminate application"
+                    @stop()
+                @timerId = setTimeout callback, @appInfo.maxInactive
+            else
+                Log.i "maxInactive is #{@appInfo.maxInactive}, alive forever"
+        else
+            callback = =>
+                Log.d "starting timeout, terminate application"
+                @stop()
+            @timerId = setTimeout callback, 10 * 1000 #starting should be done in 30s
+
+    onStarted: ->
+        @setAppStatus "running"
+        @emit "onstarted", this
+        @clearTimer()
+
     stop: ->
         @clearTimer()
-        ApplicationManager.getInstance().stopApplication this
+        ApplicationManager.getInstance().stopApplication()
 
     #
     # stop finished, notify ApplicationManager
@@ -106,9 +92,21 @@ class Application extends events.EventEmitter
     stopped: ->
         ApplicationManager.getInstance().emit "appstopped", this
 
-    terminate: ->
-        @stop()
-        @stopped()
+    onStopping: ->
+        @setAppStatus "stopping"
+        @emit "onstopping", this
+        if @appInfo.useIpc
+            callback = =>
+                Log.d "stopping timeout, terminate application"
+                @stopped()
+            @timerId = setTimeout callback, 3 * 1000 #stopping should be done in 10s
+        else
+            @stopped()
+
+    onStopped: ->
+        @setAppStatus "stopped"
+        @emit "onstopped", this
+        @clearTimer()
 
     clearTimer: ->
         if @timerId

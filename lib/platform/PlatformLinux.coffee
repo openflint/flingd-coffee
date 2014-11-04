@@ -57,7 +57,6 @@ class PlatformLinux extends Platform
         @chromeProcess.stderr.on 'data', (chunk) ->
 #            Log.e "linux stderr: #{chunk}"
         @chromeProcess.on 'exit', () ->
-            app?.terminate()
             Log.i "linux chrome exit!!!"
 
     stopApplication: (app) ->

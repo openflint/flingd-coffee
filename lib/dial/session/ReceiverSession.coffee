@@ -91,6 +91,7 @@ class ReceiverSession extends Session
             app = ApplicationManager.getInstance().getStoppingApplication()
             if app and (app.getAppId() is @appId)
                 app.stopped()
+                @_close false
             else
                 @_close true
 
@@ -161,12 +162,12 @@ class ReceiverSession extends Session
     _close: (closeAppFlag) ->
         Log.d "#{@tag}:#{@token} _close!!!"
         if closeAppFlag
-            app = ApplicationManager.getInstance().getCurrentApplication()
-            if app and (app.getAppId() is @appId)
-                app.terminate()
+            ApplicationManager.getInstance().stopApplication()
+
         @clearTimer()
         if @ppTimerId
             clearTimeout @ppTimerId
+
         @sessionManager.clearReceiverSession()
         @channel.close()
 
@@ -175,6 +176,5 @@ class ReceiverSession extends Session
             @channel.send JSON.stringify(msg)
         catch ex
             Log.e "receiver channel send failed, ws maybe closed，#{ex.toString()}"
-            @_close true
 
 module.exports.ReceiverSession = ReceiverSession

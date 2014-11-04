@@ -210,10 +210,7 @@ class ApplicationControlHandler
                         Log.d "invalided token [#{token}], stop #{appId} failed!!!"
                         @_onResponse req, res, 400, null, null
                         return
-                    if app.getAppInfo() and app.getAppInfo().useIpc
-                        app.stop()
-                    else
-                        app.terminate()
+                    app.stop()
             else
                 Log.d "application #{appId} maybe not running, stop it forced!!!"
                 ApplicationManager.getInstance().stopApplicationForce()
