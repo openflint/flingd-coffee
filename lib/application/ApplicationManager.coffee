@@ -84,6 +84,7 @@ class ApplicationManager extends events.EventEmitter
             Log.e "null app cannot be launched!!!"
             return
 
+        app.setAppStatus "starting"
         if @launchingApplication
             Log.i "#{@launchingApplication.getAppId()} is launching"
             if @launchingApplication.getAppId() is app.getAppId()
@@ -126,6 +127,8 @@ class ApplicationManager extends events.EventEmitter
             return @topApplication
         else if @launchingApplication
             return @launchingApplication
+        else if @penddingApplication.length > 0
+            return @penddingApplication[0]
         else
             return null
 
