@@ -55,7 +55,12 @@ class ApplicationControlHandler
         # ping/pong
         token = req.headers["authorization"]
         if token
-            SessionManager.getInstance().touchSession token
+            if not SessionManager.getInstance().checkSession token
+                Log.e "SenderSession #{token} maybe timeout!!!"
+                @_onResponse req, res, 400, null, null
+                return
+            else
+                SessionManager.getInstance().touchSession token
 
         body = []
 
@@ -230,7 +235,6 @@ class ApplicationControlHandler
             "Access-Control-Allow-Origin": "*"
             "Content-Length": "0"
         @_onResponse req, res, 200, headers, null
-
 
     _onResponse: (req, res, statusCode, headers, body) ->
         if headers
