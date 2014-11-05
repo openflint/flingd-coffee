@@ -22,48 +22,45 @@ S                           = require "string"
 { Config }                  = rekuire "dial/Config"
 { Application }             = rekuire "application/Application"
 { ApplicationManager }      = rekuire "application/ApplicationManager"
+{ Handler }                 = rekuire "dial/handler/Handler"
 
-class ApplicationControlHandler
-
-    constructor: ->
+class ApplicationControlHandler extends Handler
 
     onHttpRequest: (req, res) ->
+        Log.i "ApplicationControlHandler: #{req.method} -> #{req.url}"
         segs = url.parse req.url
         appId = S(segs.path).replaceAll("/apps/", "").s
-        appId = S(appId).replaceAll("/run", "").s
-        host = req.headers.host
-        method = req.method
-        Log.i "ApplicationControlHandler: #{method} #{host}:#{appId}"
+        href = "/" + Config.APPLICATION_INSTANCE
+        appId = S(appId).replaceAll(href, "").s
+        if not appId
+            @respondBadRequest req, res, "missing appId"
+            return
 
-        if appId
-            switch method
-                when "GET"
-                    @_onGet req, res, appId
-                when "POST"
-                    @_onPost req, res, appId
-                when "DELETE"
-                    @_onDelete req, res, appId
-                when "OPTIONS"
-                    @_onOptions req, res, appId
-                else
-                    Log.e "Unsupport http method: #{method}"
-                    @_onResponse req, res, 400, null, null
-        else
-            @_onResponse req, res, 404, null, null
+        switch req.method
+            when "GET"
+                @_onGet req, res, appId
+            when "POST"
+                @_onPost req, res, appId
+            when "DELETE"
+                @_onDelete req, res, appId
+            when "OPTIONS"
+                @respondOptions req, res
+            else
+                @respondUnSupport req, res
+
 
     _onGet: (req, res, appId) ->
         # ping/pong
         token = req.headers["authorization"]
         if token
             if not SessionManager.getInstance().checkSession token
-                Log.e "SenderSession #{token} maybe timeout!!!"
-                @_onResponse req, res, 400, null, null
+                Log.e "GET - SenderSession #{token} maybe timeout!!!"
+                @respondBadRequest req, res, "#{token} timeout, GET failed"
                 return
             else
                 SessionManager.getInstance().touchSession token
 
         body = []
-
         body.push "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         body.push "<service xmlns=\"urn:dial-multiscreen-org:schemas:dial\" dialVer=\"1.7\">\n"
         body.push "    <name>#{appId}</name>\n"
@@ -78,17 +75,13 @@ class ApplicationControlHandler
             body.push "    <state>stopped</state>\n"
 
         body.push "</service>\n"
-
         bodyContent = body.join ""
         Log.d "response body ->\n#{bodyContent}"
+
         headers =
             "Content-Type": "application/xml"
-            "Connection": "keep-alive"
-            "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
-            "Access-Control-Allow-Origin": "*"
-            "Cache-Control": "no-cache, must-revalidate, no-store"
             "Content-Length": bodyContent.length
-        @_onResponse req, res, 200, headers, bodyContent
+        @respond req, res, 200, headers, bodyContent
 
     _onPost: (req, res, appId) ->
         data = null
@@ -100,10 +93,12 @@ class ApplicationControlHandler
             Log.d "ApplicationControlHandler receive post:\n#{data}"
             if data
                 contentType = req.headers["content-type"]
-                if not S(contentType).contains("application/json")
-                    Log.e "content type must be application/json while posting data"
-                    @_onResponse req, res, 400, null, null
+                if (not contentType) or (not S(contentType).contains("application/json"))
+                    @respondBadRequest req, res, "content-type should be application/json"
                     return
+            else
+                @respondBadRequest req, res, "missing post data"
+                return
 
             message = JSON.parse data
             type = message?.type
@@ -131,46 +126,50 @@ class ApplicationControlHandler
                             if app.getAppId() isnt appId
                                 Log.w "#{app.getAppId()} is interrupted, #{appId} will be launched"
                                 app.stop()
-                                if @_onLaunch appId, appInfo
+                                if @_doLaunch appId, appInfo
                                     statusCode = 201
                                 else
-                                    @_onResponse req, res, 400, null, null
+                                    @respondBadRequest req, res, "launch #{appId} failed, not support"
                                     return
                             else
-                                Log.w "#{app.getAppId()} is running, ignore launch"
+                                Log.w "#{appId} is running, ignore launch"
                                 statusCode = 200
                         else
-                            if @_onLaunch appId, appInfo
+                            if @_doLaunch appId, appInfo
                                 statusCode = 201
                             else
-                                @_onResponse req, res, 400, null, null
+                                @respondBadRequest req, res, "launch #{appId} failed, not support"
                                 return
                     when "relaunch"
                         if app
                             if app.getAppId() is appId
                                 Log.w "#{appId} is interrupted, it will be relaunched"
                                 app.stop()
-                                if @_onLaunch appId, appInfo
+                                if @_doLaunch appId, appInfo
                                     statusCode = 201
                                 else
-                                    @_onResponse req, res, 400, null, null
+                                    @respondBadRequest req, res, "launch #{appId} failed, not support"
                                     return
                             else
-                                Log.e "#{appId} isn't running, cannot relaunch!!!"
-                                @_onResponse req, res, 400, null, null
+                                Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
+                                @respondBadRequest req, res, "relaunch failed"
                                 return
                         else
-                            Log.e "appid not matched, cannot relaunch!!!"
-                            @_onResponse req, res, 400, null, null
+                            Log.e "no running app, cannot be relaunched!!!"
+                            @respondBadRequest req, res, "relaunch failed"
                             return
                     when "join"
                         if app
                             if app.getAppId() is appId
                                 statusCode = 200
                             else
-                                Log.e "appid not matched, cannot join!!!"
+                                Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
+                                @respondBadRequest req, res, "join failed"
+                                return
                         else
-                            Log.e "appid isn't running, cannot join!!!"
+                            Log.e "no running app, cannot join!!!"
+                            @respondBadRequest req, res, "join failed"
+                            return
 
                 body =
                     token: token
@@ -178,19 +177,56 @@ class ApplicationControlHandler
                 bodyContent = JSON.stringify body
                 Log.d "response body ->\n#{bodyContent}"
                 headers =
-                    "Content-Type": "application/json"
                     "Connection": "keep-alive"
-                    "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
-                    "Access-Control-Allow-Origin": "*"
                     "Cache-Control": "no-cache, must-revalidate, no-store"
+                    "Content-Type": "application/json"
                     "Content-Length": bodyContent.length
-                @_onResponse req, res, statusCode, headers, bodyContent
+                @respond req, res, statusCode, headers, bodyContent
                 SessionManager.getInstance().sessionConnected session
             else
                 Log.e "bad post request: type is #{type}, appInfo is #{JSON.stringify appInfo}"
-                @_onResponse req, res, 400, null, null
+                @respondBadRequest req, res, "unsupport control"
 
-    _onLaunch: (appId, appInfo) ->
+    _onDelete: (req, res, appId) ->
+        token = req.headers["authorization"]
+        if token
+            if not SessionManager.getInstance().checkSession token
+                Log.e "DELETE - SenderSession #{token} maybe timeout!!!"
+                Log.w "invalided token [#{token}], stop #{appId} failed!!!"
+                @respondBadRequest req, res, "#{token} timeout, DELETE failed"
+                return
+        else
+            Log.e "DELETE need a token, failed!!!"
+            @respondBadRequest req, res, "missing token"
+            return
+
+        segs = url.parse req.url
+        instance = S(segs.path).replaceAll("/apps/", "").s
+        instance = S(instance).replaceAll(appId, "").s
+        instance = S(instance).replaceAll("/", "").s
+
+        if instance and (Config.APPLICATION_INSTANCE is instance)
+            # stop the application
+            app = ApplicationManager.getInstance().getAliveApplication()
+            if app
+                if appId is app.getAppId()
+                    Log.d "DELETE stop app #{appId}!!!"
+                    app.stop()
+                else
+                    Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
+                    @respondBadRequest req, res, "stop failed"
+                    return
+            else
+                Log.w "application #{appId} maybe not running, stop it forced!!!"
+                ApplicationManager.getInstance().stopApplication()
+            @respond req, res, 200
+        else
+            # disconnect the session
+            Log.d "token [#{token}] need disconnect."
+            SessionManager.getInstance().sessionDisconnectedByToken token
+            @respond req, res, 200
+
+    _doLaunch: (appId, appInfo) ->
         if S(appId).startsWith "~" # build-in application
             app = new Application appId, appInfo
             app.start()
@@ -199,52 +235,5 @@ class ApplicationControlHandler
             # TODO: add your implementation
             null
         return false
-
-    _onDelete: (req, res, appId) ->
-        segs = url.parse req.url
-        instance = S(segs.path).replaceAll("/apps/", "").s
-        instance = S(instance).replaceAll(appId, "").s
-        instance = S(instance).replaceAll("/", "").s
-        token = req.headers["authorization"]
-        if instance
-            # stop the application
-            app = ApplicationManager.getInstance().getAliveApplication()
-            if app
-                if appId is app.getAppId()
-                    if not SessionManager.getInstance().checkSession token
-                        Log.d "invalided token [#{token}], stop #{appId} failed!!!"
-                        @_onResponse req, res, 400, null, null
-                        return
-                    app.stop()
-            else
-                Log.d "application #{appId} maybe not running, stop it forced!!!"
-                ApplicationManager.getInstance().stopApplicationForce()
-            @_onResponse req, res, 200, null, null
-        else
-            # disconnect the session
-            Log.d "token [#{token}] need disconnect."
-            SessionManager.getInstance().sessionDisconnectedByToken token
-            @_onResponse req, res, 200, null, null
-
-    _onOptions: (req, res, appId) ->
-        headers =
-            "Connection": "keep-alive"
-            "Access-Control-Allow-Method": "GET, POST, DELETE, OPTIONS"
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
-            "Cache-Control": "no-cache, must-revalidate, no-store"
-            "Access-Control-Allow-Origin": "*"
-            "Content-Length": "0"
-        @_onResponse req, res, 200, headers, null
-
-    _onResponse: (req, res, statusCode, headers, body) ->
-        if headers
-            res.writeHead statusCode, headers
-        else
-            res.statusCode = statusCode
-
-        if body
-            res.end body
-        else
-            res.end()
 
 module.exports.ApplicationControlHandler = ApplicationControlHandler

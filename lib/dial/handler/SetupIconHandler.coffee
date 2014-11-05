@@ -14,11 +14,11 @@
 #    limitations under the License.
 #
 
-events              = require "events"
-
+{ Log }             = rekuire "log/Log"
 { ResourceManager } = rekuire "res/ResourceManager"
+{ Handler }         = rekuire "dial/handler/Handler"
 
-class SetupIconHandler extends events.EventEmitter
+class SetupIconHandler extends Handler
 
     @img = null
 
@@ -29,25 +29,21 @@ class SetupIconHandler extends events.EventEmitter
     onHttpRequest: (req, res) ->
         switch req.method
             when "GET", "POST"
-                @_onResponse req, res
+                @_onGetOrPost req, res
             when "OPTIONS"
                 headers =
-                    "Access-Control-Allow-Method": "GET, POST, OPTIONS"
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
-                    "Cache-Control": "no-cache, must-revalidate, no-store"
-                    "Access-Control-Allow-Origin": "*"
-                    "Content-Length": "0"
-                res.writeHead 200, headers
-                res.end()
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+                @respondOptions req, res, headers
             else
-                Log.e "Unsupport http method: #{method}"
-                res.writeHead 400
-                res.end()
+                @respondUnSupport req, res
 
-    _onResponse: (req, res) ->
-        res.writeHead 200,
-            "Content-Type": "image/png"
+    _onGetOrPost: (req, res) ->
+        headers =
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
             "Access-Control-Allow-Origin": "*"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept*, X-Requested-With"
+            "Content-Type": "image/png"
+        res.writeHead 200, headers
         res.write SetupIconHandler.img, "binary"
         res.end()
 

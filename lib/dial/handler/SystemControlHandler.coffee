@@ -16,10 +16,9 @@
 
 { Log }         = rekuire "log/Log"
 { Platform }    = rekuire "platform/Platform"
+{ Handler }     = rekuire "dial/handler/Handler"
 
-class SystemControlHandler
-
-    constructor: ->
+class SystemControlHandler extends Handler
 
     onHttpRequest: (req, res) ->
         switch req.method
@@ -27,17 +26,10 @@ class SystemControlHandler
                 @_onPost req, res
             when "OPTIONS"
                 headers =
-                    "Access-Control-Allow-Method": "GET, POST, OPTIONS"
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With, Custom-header"
-                    "Cache-Control": "no-cache, must-revalidate, no-store"
-                    "Access-Control-Allow-Origin": "*"
-                    "Content-Length": "0"
-                res.writeHead 200, headers
-                res.end()
+                    "Access-Control-Allow-Methods": "POST, OPTIONS"
+                @respondOptions req, res, headers
             else
-                Log.e "Unsupport http method: #{method}"
-                res.writeHead 400
-                res.end()
+                @respondUnSupport req, res
 
     _onPost: (req, res) ->
         platform = Platform.getInstance()
@@ -47,40 +39,28 @@ class SystemControlHandler
             data += _data
 
         req.on "end", =>
-            Log.d "SystemControlHandler receive post:\n#{data}"
+            Log.d "SystemControlHandler receive data:\n#{data}"
             message = JSON.parse data
             if message and message.type
                 switch message.type
                     when "GET_VOLUME", "GET_MUTED"
-                        @_onResponseMessage req, res, message.type
+                        @_respondVolume req, res, message.type
                     when "SET_VOLUME"
                         if message.level
                             platform.setVolume message.level
-                            @_onResponseStatusCode req, res, 200
+                            @respond req, res, 200
                         else
-                            @_onResponseStatusCode req, res, 400
+                            @respondBadRequest req, res, "missing level"
                     when "SET_MUTED"
                         if message.muted
                             platform.setMuted message.muted
-                            @_onResponseStatusCode req, res, 200
+                            @respond req, res, 200
                         else
-                            @_onResponseStatusCode req, res, 400
+                            @respondBadRequest req, res, "missing muted"
                     else
-                        Log.e "Unhandled system message received: #{data}"
-                        res.statusCode = 400
-                        res.end()
+                        @respondBadRequest req, res, "Unhandled message: #{data}"
 
-    _onResponseStatusCode: (req, res, statusCode) ->
-        headers =
-            "Access-Control-Allow-Method": "POST, OPTIONS"
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With, Custom-header"
-            "Cache-Control": "no-cache, must-revalidate, no-store"
-            "Access-Control-Allow-Origin": "*"
-            "Content-Length": "0"
-        res.writeHead statusCode, headers
-        res.end()
-
-    _onResponseMessage: (req, res, type) ->
+    _respondVolume: (req, res, type) ->
         platform = Platform.getInstance()
         message =
             success: true
@@ -88,14 +68,9 @@ class SystemControlHandler
             level: platform.getVolume()
             muted: platform.getMuted()
         body = JSON.stringify message
-        res.writeHead 200,
+        headers =
             "Content-Type": "application/json"
-            "Connection": "keep-alive"
-            "Access-Control-Allow-Method": "POST, OPTIONS"
-            "Access-Control-Allow-Origin": "*"
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With, Custom-header"
-            "Cache-Control": "no-cache, must-revalidate, no-store"
             "Content-Length": body.length
-        res.end body
+        @respond req, res, 200, headers, body
 
 module.exports.SystemControlHandler = SystemControlHandler

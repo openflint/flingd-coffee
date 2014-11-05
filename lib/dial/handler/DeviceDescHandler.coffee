@@ -20,6 +20,7 @@ url             = require "url"
 path            = require "path"
 
 { Platform }    = rekuire "platform/Platform"
+{ Handler }     = rekuire "dial/handler/Handler"
 
 # device desc template
 device_desc = """
@@ -58,37 +59,27 @@ device_desc = """
 </root>
 """
 
-class DeviceDescHandler
+class DeviceDescHandler extends Handler
 
     onHttpRequest: (req, res) ->
         switch req.method
             when "GET", "POST"
-                @_onResponse req, res
+                @_onGetOrPost req, res
             when "OPTIONS"
                 headers =
-                    "Access-Control-Allow-Method": "GET, POST, OPTIONS"
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept,X-Requested-With"
-                    "Cache-Control": "no-cache, must-revalidate, no-store"
-                    "Access-Control-Allow-Origin": "*"
-                    "Content-Length": "0"
-                res.writeHead 200, headers
-                res.end()
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+                    "Access-Control-Expose-Headers": "Application-URL"
+                @respondOptions req, res, headers
             else
-                Log.e "Unsupport http method: #{method}"
-                res.writeHead 400
-                res.end()
+                @respondUnSupport req, res
 
-    _onResponse: (req, res) ->
+    _onGetOrPost: (req, res) ->
         desc = device_desc
         host = req.headers.host
         name = Platform.getInstance().getDeviceName()
         uuid = Platform.getInstance().getDeviceUUID()
         if (not name) or (not uuid)
-            res.writeHead 404,
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
-                "Access-Control-Allow-Origin": "*"
-                "Content-Length": "0"
-            res.end()
+            @respondBadRequest req, res, "name[#{name}] or uuid[#{uuid}] is null"
             return
 
         # filter illegal characters in name
@@ -103,13 +94,12 @@ class DeviceDescHandler
         desc = desc.replace "{{ uuid }}", uuid
 
         buff = new Buffer desc
-        res.writeHead 200,
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+
+        headers =
             "Access-Control-Expose-Headers": "Application-URL"
             "Application-URL": "http://" + host + "/apps"
-            "Access-Control-Allow-Origin": "*"
             "Content-Type": "application/xml"
             "Content-Length": buff.length
-        res.end buff
+        @respond req, res, 200, headers, buff
 
 module.exports.DeviceDescHandler = DeviceDescHandler
