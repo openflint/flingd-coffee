@@ -24,10 +24,10 @@ S                           = require "string"
 { ApplicationManager }      = rekuire "application/ApplicationManager"
 { Handler }                 = rekuire "dial/handler/Handler"
 
-class ApplicationControlHandler extends Handler
+class FlingAppControlHandler extends Handler
 
     onHttpRequest: (req, res) ->
-        Log.i "ApplicationControlHandler: #{req.method} -> #{req.url}"
+        Log.i "FlingAppControlHandler: #{req.method} -> #{req.url}"
         segs = url.parse req.url
         appId = S(segs.path).replaceAll("/apps/", "").s
         href = "/" + Config.APPLICATION_INSTANCE
@@ -47,7 +47,6 @@ class ApplicationControlHandler extends Handler
                 @respondOptions req, res
             else
                 @respondUnSupport req, res
-
 
     _onGet: (req, res, appId) ->
         # ping/pong
@@ -90,13 +89,8 @@ class ApplicationControlHandler extends Handler
             data += _data
 
         req.on "end", =>
-            Log.d "ApplicationControlHandler receive post:\n#{data}"
-            if data
-                contentType = req.headers["content-type"]
-                if (not contentType) or (not S(contentType).contains("application/json"))
-                    @respondBadRequest req, res, "content-type should be application/json"
-                    return
-            else
+            Log.d "FlingAppControlHandler receive post:\n#{data}"
+            if not data
                 @respondBadRequest req, res, "missing post data"
                 return
 
@@ -126,30 +120,21 @@ class ApplicationControlHandler extends Handler
                             if app.getAppId() isnt appId
                                 Log.w "#{app.getAppId()} is interrupted, #{appId} will be launched"
                                 app.stop()
-                                if @_doLaunch appId, appInfo
-                                    statusCode = 201
-                                else
-                                    @respondBadRequest req, res, "launch #{appId} failed, not support"
-                                    return
+                                @_doLaunch appId, appInfo
+                                statusCode = 201
                             else
                                 Log.w "#{appId} is running, ignore launch"
                                 statusCode = 200
                         else
-                            if @_doLaunch appId, appInfo
-                                statusCode = 201
-                            else
-                                @respondBadRequest req, res, "launch #{appId} failed, not support"
-                                return
+                            @_doLaunch appId, appInfo
+                            statusCode = 201
                     when "relaunch"
                         if app
                             if app.getAppId() is appId
                                 Log.w "#{appId} is interrupted, it will be relaunched"
                                 app.stop()
-                                if @_doLaunch appId, appInfo
-                                    statusCode = 201
-                                else
-                                    @respondBadRequest req, res, "launch #{appId} failed, not support"
-                                    return
+                                @_doLaunch appId, appInfo
+                                statusCode = 201
                             else
                                 Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
                                 @respondBadRequest req, res, "relaunch failed"
@@ -227,13 +212,7 @@ class ApplicationControlHandler extends Handler
             @respond req, res, 200
 
     _doLaunch: (appId, appInfo) ->
-        if S(appId).startsWith "~" # build-in application
-            app = new Application appId, appInfo
-            app.start()
-            return true
-        else
-            # TODO: add your implementation
-            null
-        return false
+        app = new Application appId, appInfo
+        app.start()
 
-module.exports.ApplicationControlHandler = ApplicationControlHandler
+module.exports.FlingAppControlHandler = FlingAppControlHandler

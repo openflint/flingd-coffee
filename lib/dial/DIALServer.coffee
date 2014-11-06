@@ -17,7 +17,8 @@
 events                          = require "events"
 
 { Log }                         = rekuire "log/Log"
-{ ApplicationControlHandler }   = rekuire "dial/handler/ApplicationControlHandler"
+{ FlingAppControlHandler }      = rekuire "dial/handler/FlingAppControlHandler"
+{ DialAppControlHandler }       = rekuire "dial/handler/DialAppControlHandler"
 { ReceiverConnectionHandler }   = rekuire "dial/handler/ReceiverConnectionHandler"
 { DeviceDescHandler }           = rekuire "dial/handler/DeviceDescHandler"
 { SetupIconHandler }            = rekuire "dial/handler/SetupIconHandler"
@@ -37,10 +38,13 @@ class DIALServer extends events.EventEmitter
 
         @httpServer.addRoute /\/setup\/icon.png$/, SetupIconHandler
         @httpServer.addRoute /\/ssdp\/device-desc.xml$/, DeviceDescHandler
-        @httpServer.addRoute /\/apps\/[^\/]+$/, ApplicationControlHandler
-        @httpServer.addRoute /\/apps\/[^\/]+\/run$/, ApplicationControlHandler
+        @httpServer.addRoute /\/apps\/~[^\/]+$/, FlingAppControlHandler
+        @httpServer.addRoute /\/apps\/~[^\/]+\/[a-zA-Z_0-9\-]+$/, FlingAppControlHandler
         @httpServer.addRoute /\/receiver\/[^\/]+$/, ReceiverConnectionHandler
         @httpServer.addRoute /\/system\/control$/, SystemControlHandler
+
+        @httpServer.addRoute /\/apps\/[^~\/]+$/, DialAppControlHandler
+        @httpServer.addRoute /\/apps\/[^~\/]+\/[a-zA-Z_0-9\-]+$/, DialAppControlHandler
 
         @ssdpServer.start()
 #        @mdnsServer.start()
