@@ -19,6 +19,7 @@ events                          = require "events"
 { Log }                         = rekuire "log/Log"
 { FlingAppControlHandler }      = rekuire "dial/handler/FlingAppControlHandler"
 { DialAppControlHandler }       = rekuire "dial/handler/DialAppControlHandler"
+{ DialAdditionalDataHandler }   = rekuire "dial/handler/DialAdditionalDataHandler"
 { ReceiverConnectionHandler }   = rekuire "dial/handler/ReceiverConnectionHandler"
 { DeviceDescHandler }           = rekuire "dial/handler/DeviceDescHandler"
 { SetupIconHandler }            = rekuire "dial/handler/SetupIconHandler"
@@ -43,6 +44,7 @@ class DIALServer extends events.EventEmitter
         @httpServer.addRoute /\/receiver\/[^\/]+$/, ReceiverConnectionHandler
         @httpServer.addRoute /\/system\/control$/, SystemControlHandler
 
+        @httpServer.addRoute /\/apps\/[^~\/]+\/dial_data$/, DialAdditionalDataHandler
         @httpServer.addRoute /\/apps\/[^~\/]+$/, DialAppControlHandler
         @httpServer.addRoute /\/apps\/[^~\/]+\/[a-zA-Z_0-9\-]+$/, DialAppControlHandler
 

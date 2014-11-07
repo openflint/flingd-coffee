@@ -74,7 +74,7 @@ class ReceiverSession extends Session
             # receiver application post additional data to Fling-Service
             else if data.type is "additionaldata"
                 Log.d "app #{@appId} set additional data: #{data.additionaldata}"
-                app.setAdditionalData data.additionaldata
+                app.setAdditionalDataWithJson data.additionaldata
             # heartbeat message
             else if data.type is "heartbeat"
                 Log.d "received from #{@appId}: #{data.heartbeat}}!!!"

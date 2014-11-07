@@ -37,11 +37,20 @@ class Application extends events.EventEmitter
         @state = appStatus
         Log.d "Application #{@appId} is #{@state}"
 
-    setAdditionalData: (data) ->
+    setAdditionalDataWithJson: (data) ->
         if not data
             return
         @additionalData += "<additionalData>\n"
         @additionalData += jsontoxml(data)
+        @additionalData += "\n"
+        @additionalData += "</additionalData>\n"
+
+    setAdditionalData: (data) ->
+        if not data
+            return
+        @additionalData += "<additionalData>\n"
+        @additionalData += data
+        @additionalData += "\n"
         @additionalData += "</additionalData>\n"
 
     getAdditionalData: ->
