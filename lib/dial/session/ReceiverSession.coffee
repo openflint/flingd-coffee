@@ -122,7 +122,7 @@ class ReceiverSession extends Session
                     ip.push addressInfo.address
         @_reply
             type: "registerok"
-            appid: "~browser"
+            appid: @appId
             service_info:
                 ip: ip
                 uuid: Platform.getInstance().getDeviceUUID()
