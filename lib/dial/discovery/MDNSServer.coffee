@@ -44,10 +44,10 @@ class MDNSServer
 
         if @advertisement && @advertisement.status
             Log.d "reset MDNSServer ..."
-            @advertisement.set mdns.tcp("openflint"), @port, options
+            @advertisement.set mdns.tcp("matchstick"), @port, options
         else
             Log.d "create MDNSServer ..."
-            @advertisement = mdns.createAdvertisement mdns.tcp("openflint"), @port, options
+            @advertisement = mdns.createAdvertisement mdns.tcp("matchstick"), @port, options
             @advertisement.start()
 
     resetServer: (name) ->

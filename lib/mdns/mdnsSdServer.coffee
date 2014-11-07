@@ -117,8 +117,8 @@ class mdnsSdServer extends events.EventEmitter
         @_start()
         @startLoop = setInterval (=>
             @_start() ), 5000
-        @keepActiveLoop = setInterval (=>
-            @keepActive() ), 8000
+#        @keepActiveLoop = setInterval (=>
+#            @keepActive() ), 8000
 
     stop: ->
         @socket.close()

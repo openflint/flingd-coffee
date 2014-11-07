@@ -600,13 +600,11 @@ class MDNS
             additionalRecords: [],
             autorityRecords: []
 
-        """
         response.questions.push
             name: fullProtocol,
             type: MDNS.TYPE_PTR,
             class: MDNS.CLASS_IN,
             unicast: true
-        """
 
         response.answers.push
             name: fullProtocol,
