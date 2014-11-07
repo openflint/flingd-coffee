@@ -40,6 +40,7 @@ class Application extends events.EventEmitter
     setAdditionalDataWithJson: (data) ->
         if not data
             return
+        @additionalData = ""
         @additionalData += "<additionalData>\n"
         @additionalData += jsontoxml(data)
         @additionalData += "\n"
@@ -48,6 +49,7 @@ class Application extends events.EventEmitter
     setAdditionalData: (data) ->
         if not data
             return
+        @additionalData = ""
         @additionalData += "<additionalData>\n"
         @additionalData += data
         @additionalData += "\n"
