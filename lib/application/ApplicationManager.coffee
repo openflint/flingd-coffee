@@ -60,7 +60,7 @@ class ApplicationManager extends events.EventEmitter
     stopApplication: ->
         Log.i "stop application request!!!"
         if @stoppingApplication
-            Log.e "#{@stoppingApplication.getAppId()} is stopping!!! cannot stop it twice!!! STH wrong!!!".bgRed
+            Log.e "#{@stoppingApplication.getAppId()} is stopping!!! cannot stop it twice!!! STH wrong!!!"
             return
         else if @topApplication
             Log.i "try to stop top application: #{@topApplication.getAppId()}"
