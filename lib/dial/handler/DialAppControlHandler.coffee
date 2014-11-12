@@ -60,7 +60,7 @@ class DialAppControlHandler extends Handler
 
         app = ApplicationManager.getInstance().getAliveApplication()
         if app and (app.getAppId() is appId)
-            body.push "    <state>#{app.getAppStatus()}</state>\n"
+            body.push "    <state>running</state>\n"
             body.push "    <link rel=\"run\" href=\"#{Config.APPLICATION_INSTANCE}\"/>\n"
         else
             body.push "    <state>stopped</state>\n"
