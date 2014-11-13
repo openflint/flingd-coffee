@@ -223,7 +223,7 @@ Fling Server为应用提供了几种常用的内建通信设施，比如websocke
     {
         "success": true, #bool，表示结果
         "type":"GET_VOLUME | SET_VOLUME | GET_MUTED | SET_MUTED", #与之前request中的type相同
-        "level": 0.5, #fload，音量
+        "level": 0.5, #float，音量
         "muted": false #boolean，是否静音
     }
     </pre>
@@ -297,14 +297,14 @@ ws_A.onmessage = function (event) {
     var msg = JSON.parse(event.data);
     // Handle new sender connected event
     if (msg.type === 'senderConnected') {
-        console.log('senderId:', message.senderId);
+        console.log('senderId:', msg.senderId);
     // Handle sender lost event
     } else if (msg.type === 'senderDisconnected') {
-        console.log('senderId:', message.senderId);
+        console.log('senderId:', msg.senderId);
     // Handle other message
     } else if (msg.type === 'message') {
-        console.log('senderId:', message.senderId);
-        console.log('data:', message.data);
+        console.log('senderId:', msg.senderId);
+        console.log('data:', msg.data);
     }
 };
 ws_A.send(
