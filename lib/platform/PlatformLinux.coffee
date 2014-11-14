@@ -24,7 +24,12 @@ class PlatformLinux extends Platform
 
     constructor: ->
         super
-        @chrome_path = "/opt/google/chrome/google-chrome"
+        @receiver_container = process.env.RECEIVER_CONTAINER
+        if @receiver_container == "firefox"
+            @chrome_path = "/usr/bin/firefox"
+        else
+            @chrome_path = "/opt/google/chrome/google-chrome"
+
         @name = "MatchStick_Linux_" + String(@deviceUUID).replace(/-/g, '').substr(-4)
         Log.d "PlatformDarwin: #{@name}"
         setTimeout ( => @emit "device_name_changed", @name)
@@ -37,20 +42,24 @@ class PlatformLinux extends Platform
             return
         appUrl = app.getAppInfo().url
         Log.d "PlatformDarwin.launchApplication: #{appUrl}"
-        @chromeProcess = child_process.spawn chrome, [
-            "--no-default-browser-check",
-            "--enable-logging",
-            "--no-first-run",
-            "--disable-application-cache",
-            "--disable-cache",
-            "--enable-kiosk-mode",
-            "--kiosk",
-            "--start-maximized",
-            "--window-size=1280,720",
-            "--single-process",
-            "--app=" + appUrl,
-            "--user-data-dir=/tmp/" + @deviceUUID
-        ]
+        if @receiver_container == "firefox"
+            @chrome_path = child_process.spawn chrome, [
+            ]
+        else
+            @chromeProcess = child_process.spawn chrome, [
+                "--no-default-browser-check",
+                "--enable-logging",
+                "--no-first-run",
+                "--disable-application-cache",
+                "--disable-cache",
+                "--enable-kiosk-mode",
+                "--kiosk",
+                "--start-maximized",
+                "--window-size=1280,720",
+                "--single-process",
+                "--app=" + appUrl,
+                "--user-data-dir=/tmp/" + @deviceUUID
+            ]
 
         @chromeProcess.stdout.on 'data', (chunk) ->
 #            Log.d "linux stdout: #{chunk}"

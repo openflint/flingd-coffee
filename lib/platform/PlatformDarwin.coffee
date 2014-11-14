@@ -24,7 +24,12 @@ class PlatformDarwin extends Platform
 
     constructor: ->
         super
-        @chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        @receiver_container = process.env.RECEIVER_CONTAINER
+        if @receiver_container == 'firefox'
+            @chrome_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
+        else
+            @chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
         @name = "MatchStick_MAC_" + String(@deviceUUID).replace(/-/g, '').substr(-4)
         Log.d "PlatformDarwin: #{@name}"
         setTimeout ( => @emit "device_name_changed", @name)
@@ -36,20 +41,25 @@ class PlatformDarwin extends Platform
             return
         appUrl = app.getAppInfo().url
         Log.d "PlatformDarwin.launchApplication: #{appUrl}"
-        @chromeProcess = child_process.spawn @chrome_path, [
-            "--no-default-browser-check",
-            "--enable-logging",
-            "--no-first-run",
-            "--disable-application-cache",
-            "--disable-cache",
-            "--enable-kiosk-mode",
-            "--kiosk",
-            "--start-maximized",
-            "--window-size=1280,720",
-            "--single-process",
-            "--app=" + appUrl,
-            "--user-data-dir=/tmp/" + @deviceUUID
-        ]
+        if @receiver_container == "firefox"
+            @chromeProcess = child_process.spawn @chrome_path, [
+                appUrl
+            ]
+        else
+            @chromeProcess = child_process.spawn @chrome_path, [
+                "--no-default-browser-check",
+                "--enable-logging",
+                "--no-first-run",
+                "--disable-application-cache",
+                "--disable-cache",
+                "--enable-kiosk-mode",
+                "--kiosk",
+                "--start-maximized",
+                "--window-size=1280,720",
+                "--single-process",
+                "--app=" + appUrl,
+                "--user-data-dir=/tmp/" + @deviceUUID
+            ]
 
         @chromeProcess.stdout.on 'data', (chunk) =>
 #            Log.d "darwin stdout: #{chunk}"
