@@ -59,7 +59,7 @@ mDNS会响应search name为`'openflint'`的请求，并把Fling Service的url地
         * `join`：当通过GET获取的应用状态为`running`  或者`starting`时，发送`join`命令，使DIAL client只是将自己加入Fling Rest  Service的session管理中，不对已经启动的应用做任何操作。
     * response中会返回一些session管理的信息。
         * `token`：表示Fling Server为发送请求的DIAL client创建了一个session，如果这个DIAL client再发送其他请求，都需要在发送请求时附带这个token。而且为了保证这个token一直有效，需要定期的向Fling Server发送带有`token`的GET请求(前文的GET请求)。
-        * `interval`：建议DIAL client发送GET请求的间隔，毫秒zhi。
+        * `interval`：建议DIAL client发送GET请求的间隔，毫秒值。
     * 消息格式请参考[Annex B]
 
 #### **停止应用**
@@ -256,10 +256,10 @@ First-Screen application连接Fling Server的websocket地址为：
         }
     }
 </pre>
-* `startheartbeat`：Fling Server -> App
+* `startHeartbeat`：Fling Server -> App
 <pre>
     {
-        "type":"startheartbeat",
+        "type":"startHeartbeat",
         "appid":"~appid",
         "interval":3*1000 # ping/pong间隔
     }
