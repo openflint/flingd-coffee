@@ -63,11 +63,11 @@ class PlatformLinux extends Platform
                 "--user-data-dir=/tmp/" + @deviceUUID
             ]
 
-        @chromeProcess.stdout.on 'data', (chunk) ->
+        @chromeProcess.stdout.on 'data', (chunk) =>
 #            Log.d "linux stdout: #{chunk}"
-        @chromeProcess.stderr.on 'data', (chunk) ->
+        @chromeProcess.stderr.on 'data', (chunk) =>
 #            Log.e "linux stderr: #{chunk}"
-        @chromeProcess.on 'exit', () ->
+        @chromeProcess.on 'exit', () =>
             Log.i "linux chrome exit!!!"
 
     stopApplication: (app) ->
