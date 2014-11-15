@@ -57,6 +57,8 @@ class PlatformDarwin extends Platform
                 "--start-maximized",
                 "--window-size=1280,720",
                 "--single-process",
+                "--allow-insecure-websocket-from-https-origin",
+                "--allow-running-insecure-content",
                 "--app=" + appUrl,
                 "--user-data-dir=/tmp/" + @deviceUUID
             ]
