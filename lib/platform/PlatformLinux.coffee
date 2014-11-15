@@ -33,8 +33,7 @@ class PlatformLinux extends Platform
         @name = "MatchStick_Linux_" + String(@deviceUUID).replace(/-/g, '').substr(-4)
         Log.d "PlatformDarwin: #{@name}"
         setTimeout ( => @emit "device_name_changed", @name)
-        , 2000
-
+            , 2000
 
     launchApplication: (app) ->
         if (not app) or (not app.getAppInfo()) or (not app.getAppInfo().url)
@@ -43,10 +42,11 @@ class PlatformLinux extends Platform
         appUrl = app.getAppInfo().url
         Log.d "PlatformDarwin.launchApplication: #{appUrl}"
         if @receiver_container == "firefox"
-            @chrome_path = child_process.spawn chrome, [
+            @chromeProcess = child_process.spawn @chrome_path, [
+                appUrl
             ]
         else
-            @chromeProcess = child_process.spawn chrome, [
+            @chromeProcess = child_process.spawn @chrome_path, [
                 "--no-default-browser-check",
                 "--enable-logging",
                 "--no-first-run",

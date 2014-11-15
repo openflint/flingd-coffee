@@ -25,7 +25,7 @@ class PlatformDarwin extends Platform
     constructor: ->
         super
         @receiver_container = process.env.RECEIVER_CONTAINER
-        if @receiver_container == 'firefox'
+        if @receiver_container == "firefox"
             @chrome_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
         else
             @chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
