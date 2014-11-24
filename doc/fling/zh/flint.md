@@ -199,7 +199,7 @@ Content-Type: application/json
 }
 ```
 
-#### **E. Receiver application register to Flint Service **
+### **E. Receiver application register to Flint Service**
 
 * WebSocket URL: **`ws://127.0.0.1:9431/receiver/~<appid>`**
 
@@ -273,7 +273,7 @@ Content-Type: application/json
     }
 ```
 
-#### **F. WebSocket Server API**
+### **F. WebSocket Server API**
 * Receiver application create WebSocket message channel, URL: `ws://localhost:9439`
 
 ```
@@ -316,10 +316,10 @@ ws.send(
 * Flint Service send additionaldata to sender application
 
 ```
-    &lt;additionaldata>
-        &lt;channelNameA>ws://127.0.0.1:9439/channels/channelNameA&lt;/>
-        &lt;channelNameB>ws://127.0.0.1:9439/channels/channelNameB&lt;/>
-    &lt;/additionaldata>
+    <additionaldata>
+        <channelNameA>ws://127.0.0.1:9439/channels/channelNameA</channelNameA>
+        <channelNameB>ws://127.0.0.1:9439/channels/channelNameB</channelNameB>
+    </additionaldata>
 ```
 
 * Sender Connect to Message Channel
