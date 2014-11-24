@@ -194,7 +194,7 @@ Content-Type: application/json
 }
 ```
 
-### **E. Receiver application register to Flint Service **
+### **E. Receiver application register to Flint Service**
 
 * WebSocket URL: **`ws://127.0.0.1:9431/receiver/~<appid>`**
 
