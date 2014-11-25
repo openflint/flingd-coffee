@@ -199,7 +199,7 @@ class FlingAppControlHandler extends Handler
                     app.stop()
                 else
                     Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
-                    @respondBadRequest req, res, "stop failed"
+                    @respondNotFount req, res, "stop failed"
                     return
             else
                 Log.w "application #{appId} maybe not running, stop it forced!!!"

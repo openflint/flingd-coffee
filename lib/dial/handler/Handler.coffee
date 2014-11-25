@@ -26,6 +26,10 @@ class Handler
         Log.e "Unsupport http method: #{req.method}"
         @respond req, res, 400
 
+    respondNotFount: (req, res) ->
+        Log.e "NotFount http method: #{req.method}"
+        @respond req, res, 404
+
     respondOptions: (req, res, headers) ->
         if headers
             if not headers["Access-Control-Max-Age"]

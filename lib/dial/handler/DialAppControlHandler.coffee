@@ -33,10 +33,10 @@ class DialAppControlHandler extends Handler
         href = "/" + Config.APPLICATION_INSTANCE
         appId = S(appId).replaceAll(href, "").s
         if not appId
-            @respondBadRequest req, res, "missing appId"
+            @respondNotFount req, res, "missing appId"
             return
         else if not ApplicationConfigs[appId]
-            @respondBadRequest req, res, "not support #{appId}"
+            @respondNotFount req, res, "Not found #{appId}"
             return
 
         switch req.method
@@ -62,6 +62,7 @@ class DialAppControlHandler extends Handler
         if app and (app.getAppId() is appId)
             body.push "    <state>running</state>\n"
             body.push "    <link rel=\"run\" href=\"#{Config.APPLICATION_INSTANCE}\"/>\n"
+            body.push app.getAdditionalData()
         else
             body.push "    <state>stopped</state>\n"
 
@@ -107,9 +108,9 @@ class DialAppControlHandler extends Handler
             else
                 msg = "request appid is #{appId}, cannot stop #{app.getAppId()}"
                 Log.e msg
-                @respondBadRequest req, res, msg
+                @respondNotFount req, res, msg
         else
-            @respondBadRequest req, res, "no running app, cannot stop!!!"
+            @respondNotFount req, res, "no running app, cannot stop!!!"
 
     _doLaunch: (req, res, appId, config, postData) ->
         Log.d "do real launch!!! #{appId}"
