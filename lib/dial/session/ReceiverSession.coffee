@@ -62,11 +62,15 @@ class ReceiverSession extends Session
 
             # receiver application register itself
             if data.type is "register"
-                Log.d "app #{@appId} is registered"
-                # application is launched, and start heartbeat
-                app.started()
-                @_onRegister()
-                @_startHeartbeat()
+                if app.getAppInfo().useIpc
+                    Log.d "app #{@appId} is registered"
+                    # application is launched, and start heartbeat
+                    app.started()
+                    @_onRegister()
+                    @_startHeartbeat()
+                else
+                    Log.e "app #{@appId} should not be registered, close it!!!"
+                    app.stop()
             # receiver application unregister itself, fling-service stop it
             else if data.type is "unregister"
                 @sessionManager.clearReceiverSession()
