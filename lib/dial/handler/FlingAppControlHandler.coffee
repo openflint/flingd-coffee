@@ -191,6 +191,7 @@ class FlingAppControlHandler extends Handler
         instance = S(instance).replaceAll("/", "").s
 
         if instance and (Config.APPLICATION_INSTANCE is instance)
+            SessionManager.getInstance().sessionDisconnectedByToken token
             # stop the application
             app = ApplicationManager.getInstance().getAliveApplication()
             if app
