@@ -33,11 +33,17 @@ class Channel
             senderId = messageObj.senderId
             if "*:*" is senderId
                 for own _, conn of @txconn
-                    conn.send messageObj.data
+                    try
+                        conn.send messageObj.data
+                    catch e
+                        Log.e 'broadcast exception: ', e
             else
                 txconn = @txconn[senderId]
                 if txconn
-                    txconn.send messageObj.data
+                    try
+                        txconn.send messageObj.data
+                    catch e
+                        Log.e 'send exception: ', e
                 else
                     @_respReceiverError 'Invalid sender id'
 
@@ -51,21 +57,30 @@ class Channel
                 @txconn[senderId].close()
             @txconn[senderId] = senderConn
 
-            @rxconn.send JSON.stringify
-                type: 'senderConnected'
-                senderId: senderId
+            try
+                @rxconn.send JSON.stringify
+                    type: 'senderConnected'
+                    senderId: senderId
+            catch e
+                Log.e e
 
             senderConn.on 'message', (message) =>
                 Log.i "Receive from sender ", message;
-                @rxconn?.send JSON.stringify
-                    type: 'message'
-                    senderId: senderId
-                    data: message
+                try
+                    @rxconn?.send JSON.stringify
+                        type: 'message'
+                        senderId: senderId
+                        data: message
+                catch e
+                    Log.e e
 
             senderConn.on 'close', =>
-                @rxconn?.send JSON.stringify
-                    type: 'senderDisconnected'
-                    senderId: senderId
+                try
+                    @rxconn?.send JSON.stringify
+                        type: 'senderDisconnected'
+                        senderId: senderId
+                catch e
+                    Log.e e
                 @_removeSenderConn senderId
         else
             senderConn.close()
@@ -80,9 +95,12 @@ class Channel
         delete @txconn[senderId]
 
     _respReceiverError: (message) ->
-        @rxconn.send JSON.stringify
-            type: 'error'
-            message: message
+        try
+            @rxconn.send JSON.stringify
+                type: 'error'
+                message: message
+        catch e
+            Log.e e
 
 class WebSocketServer
 
