@@ -98,79 +98,84 @@ class FlingAppControlHandler extends Handler
             type = message?.type
             appInfo = message?.app_info
 
-            if ((type is "launch") or (type is "relaunch") or (type is "join")) and appInfo
-                # already has a token
-                token = req.headers["authorization"]
-                if token
-                    SessionManager.getInstance().touchSession token
-                else
-                    session = SessionManager.getInstance().createSenderSession appId
-                    token = session.getToken()
+            if (type isnt "launch") and (type isnt "relaunch") and (type isnt "join")
+                Log.e "bad post request: type is #{type}"
+                @respondBadRequest req, res, "unsupport type"
+                return
+            if (type is "launch") or (type is "relaunch")
+                if not appInfo
+                    Log.e "bad post request: appInfo is null"
+                    @respondBadRequest req, res, "empty appInfo"
+                    return
 
-                if appInfo and appInfo.url
-                    hostIp = req.connection.remoteAddress or
-                        req.socket.remoteAddress or
-                        req.connection.socket.remoteAddress
-                    appInfo.url = appInfo.url.replace "${REMOTE_ADDRESS}", hostIp
+            token = req.headers["authorization"]
+            if token
+                SessionManager.getInstance().touchSession token
+            else
+                session = SessionManager.getInstance().createSenderSession appId
+                token = session.getToken()
 
-                app = ApplicationManager.getInstance().getAliveApplication()
-                switch type
-                    when "launch"
-                        if app
-                            if app.getAppId() isnt appId
-                                Log.w "#{app.getAppId()} is interrupted, #{appId} will be launched"
-                                app.stop()
-                                @_doLaunch appId, appInfo
-                                statusCode = 201
-                            else
-                                Log.w "#{appId} is running, ignore launch"
-                                statusCode = 200
-                        else
+            if appInfo and appInfo.url
+                hostIp = req.connection.remoteAddress or
+                    req.socket.remoteAddress or
+                    req.connection.socket.remoteAddress
+                appInfo.url = appInfo.url.replace "${REMOTE_ADDRESS}", hostIp
+
+            app = ApplicationManager.getInstance().getAliveApplication()
+            switch type
+                when "launch"
+                    if app
+                        if app.getAppId() isnt appId
+                            Log.w "#{app.getAppId()} is interrupted, #{appId} will be launched"
+                            app.stop()
                             @_doLaunch appId, appInfo
                             statusCode = 201
-                    when "relaunch"
-                        if app
-                            if app.getAppId() is appId
-                                Log.w "#{appId} is interrupted, it will be relaunched"
-                                app.stop()
-                                @_doLaunch appId, appInfo
-                                statusCode = 201
-                            else
-                                Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
-                                @respondBadRequest req, res, "relaunch failed"
-                                return
                         else
-                            Log.e "no running app, cannot be relaunched!!!"
+                            Log.w "#{appId} is running, ignore launch"
+                            statusCode = 200
+                    else
+                        @_doLaunch appId, appInfo
+                        statusCode = 201
+                when "relaunch"
+                    if app
+                        if app.getAppId() is appId
+                            Log.w "#{appId} is interrupted, it will be relaunched"
+                            app.stop()
+                            @_doLaunch appId, appInfo
+                            statusCode = 201
+                        else
+                            Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
                             @respondBadRequest req, res, "relaunch failed"
                             return
-                    when "join"
-                        if app
-                            if app.getAppId() is appId
-                                statusCode = 200
-                            else
-                                Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
-                                @respondBadRequest req, res, "join failed"
-                                return
+                    else
+                        Log.e "no running app, cannot be relaunched!!!"
+                        @respondBadRequest req, res, "relaunch failed"
+                        return
+                when "join"
+                    if app
+                        if app.getAppId() is appId
+                            statusCode = 200
                         else
-                            Log.e "no running app, cannot join!!!"
+                            Log.e "running app is #{app.getAppId()}, request appid is #{appId}, they are not matched!!!"
                             @respondBadRequest req, res, "join failed"
                             return
+                    else
+                        Log.e "no running app, cannot join!!!"
+                        @respondBadRequest req, res, "join failed"
+                        return
 
-                body =
-                    token: token
-                    interval: Config.SENDER_SESSION_PP_INTERVAL
-                bodyContent = JSON.stringify body
-                Log.d "response body ->\n#{bodyContent}"
-                headers =
-                    "Connection": "keep-alive"
-                    "Cache-Control": "no-cache, must-revalidate, no-store"
-                    "Content-Type": "application/json"
-                    "Content-Length": bodyContent.length
-                @respond req, res, statusCode, headers, bodyContent
-                SessionManager.getInstance().sessionConnected session
-            else
-                Log.e "bad post request: type is #{type}, appInfo is #{JSON.stringify appInfo}"
-                @respondBadRequest req, res, "unsupport control"
+            body =
+                token: token
+                interval: Config.SENDER_SESSION_PP_INTERVAL
+            bodyContent = JSON.stringify body
+            Log.d "response body ->\n#{bodyContent}"
+            headers =
+                "Connection": "keep-alive"
+                "Cache-Control": "no-cache, must-revalidate, no-store"
+                "Content-Type": "application/json"
+                "Content-Length": bodyContent.length
+            @respond req, res, statusCode, headers, bodyContent
+            SessionManager.getInstance().sessionConnected session
 
     _onDelete: (req, res, appId) ->
         token = req.headers["authorization"]
