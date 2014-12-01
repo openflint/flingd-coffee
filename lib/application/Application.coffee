@@ -86,7 +86,7 @@ class Application extends events.EventEmitter
             callback = =>
                 Log.d "starting timeout, terminate application"
                 @stop()
-            @timerId = setTimeout callback, 10 * 1000 #starting should be done in 30s
+            @timerId = setTimeout callback, 30 * 1000 #starting should be done in 30s
 
     onStarted: ->
         @setAppStatus "running"
