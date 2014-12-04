@@ -187,16 +187,25 @@ Content-Type: application/json
 
 * response
 
+if `GET_XXX`
+
 ```
 200 OK
 Content-Type: application/json
 
 {
     "success": true, # boolean
-     "type":"GET_VOLUME | SET_VOLUME | GET_MUTED | SET_MUTED",
-     "level": 0.5, #float, volume
-     "muted": false #boolean
+     "type":"GET_VOLUME | GET_MUTED",
+     "level": 0.5, #float, Available if if type is GET_VOLUME
+     "muted": false or true #boolean, Available if type is GET_MUTED
 }
+```
+if `SET_XXX`
+
+```
+200 OK
+or
+400 BAD REQUEST
 ```
 
 ### **E. Receiver application register to Flint Service**
