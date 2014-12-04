@@ -52,7 +52,7 @@ class SystemControlHandler extends Handler
                         else
                             @respondBadRequest req, res, "missing level"
                     when "SET_MUTED"
-                        if message.muted
+                        if message.muted isnt undefined
                             platform.setMuted message.muted
                             @respond req, res, 200
                         else
@@ -65,8 +65,10 @@ class SystemControlHandler extends Handler
         message =
             success: true
             request_type: type
-            level: platform.getVolume()
-            muted: platform.getMuted()
+        if type is "GET_VOLUME"
+            message["level"] = platform.getVolume()
+        if type is "GET_MUTED"
+            message["muted"] = platform.getMuted()
         body = JSON.stringify message
         headers =
             "Content-Type": "application/json"
