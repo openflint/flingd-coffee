@@ -2,11 +2,11 @@
 
 ---
 ## Overview
-Fling Service包含Discovery Service, Rest Service和WebSocket Service。Fling实现了DIAL协议，支持2nd screen application（也叫做sender application）发现、启动 1st screen application（也叫做receiver application）。sender application是DIAL client，Discovery Service和Rest Service是DIAL server。
+Flint Service包含Discovery Service, Rest Service和WebSocket Service。Flint实现了DIAL协议，支持2nd screen application（也叫做sender application）发现、启动 1st screen application（也叫做receiver application）。sender application是DIAL client，Discovery Service和Rest Service是DIAL server。
 
 ---
 ## Flint Discovery Service
-Fling Discovery Service支持DIAL协议中定义的SSDP发现协议，也支持mDNS发现协议。
+Flint Discovery Service支持DIAL协议中定义的SSDP发现协议，也支持mDNS发现协议。
 * SSDP：请参考References [1](Section 5)。 
 * mDNS：mDNS会响应search name为`'openflint'`的请求，并把DIAL server的URL地址与端口号返回。请参考References [2]。
 
