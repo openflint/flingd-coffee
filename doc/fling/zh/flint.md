@@ -126,7 +126,7 @@ Content-Type: application/json
 
 {
     "token":"EE2287DB-D10D-FECD-667B-8342AD095C33"
-    "interval":3 #ping/pong interval
+    "interval":3*1000 #ping/pong interval
 }
 ```
 
@@ -137,7 +137,7 @@ Content-Type: application/json
 Content-Type: application/json
 {
     "token":"EE2287DB-D10D-FECD-667B-8342AD095C33"
-    "interval":3 #ping/pong interval
+    "interval":3*1000 #ping/pong interval
 }
 ```
 
