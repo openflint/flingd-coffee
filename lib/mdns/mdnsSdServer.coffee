@@ -42,7 +42,6 @@ class mdnsSdServer extends events.EventEmitter
         @localName 
         @dnsSdResponse
         @dnsSdKeepResponse
-        @status = false
 
     getAddress: ->
         address = {} 
@@ -101,9 +100,8 @@ class mdnsSdServer extends events.EventEmitter
                     Log.d "MDNS socket is binded"
                     @socket.addMembership mdnsSdServer.MDNS_ADDRESS, @address.ipv4
                     @running = true
-                    @listen()
                     @emit "ready"
-                @status = true
+                @status = "running"
                 @keepActive()
 
             else
@@ -114,6 +112,7 @@ class mdnsSdServer extends events.EventEmitter
                     Log.d "MDNSServer dont ipv4, please check network"
 
     start: ->
+        @status = "strating"
         @_start()
         @startLoop = setInterval (=>
             @_start() ), 5000
@@ -121,22 +120,20 @@ class mdnsSdServer extends events.EventEmitter
 #            @keepActive() ), 8000
 
     stop: ->
-        @socket.close()
-        @status = false
-        clearInterval @start_loop
-        clearInterval @keep_active
-        Log.d "MDNSServer stop"
+        if @status == "running"
+            clearInterval @startLoop
+            clearInterval @keepActiveLoop
+            @socket.close()
+            @status = "stoped"
+            Log.d "MDNSServer stop"
 
     keepActive: ->
         if @dnsSdKeepResponse
             @dnsSdKeepResponse.transactionID = 0
             buff = new Buffer MDNSHelper.encodeMessage @dnsSdKeepResponse
-            if @status
+            if @status and @status == "running"
                 @socket.send buff, 0, buff.length, mdnsSdServer.MDNS_PORT, mdnsSdServer.MDNS_ADDRESS, =>
                     Log.i "mdnsResponse to #{mdnsSdServer.MDNS_ADDRESS}:#{mdnsSdServer.MDNS_PORT} done".red
-
-    listen: ->
-        if not @running then return
 
     onReceive: (data, address, port) ->
         try
