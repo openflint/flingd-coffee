@@ -121,9 +121,11 @@ class mdnsSdServer extends events.EventEmitter
 
     stop: ->
         if @status == "running"
+            @status = "stoping"
             clearInterval @startLoop
             clearInterval @keepActiveLoop
             @socket.close()
+            @running = false
             @status = "stoped"
             Log.d "MDNSServer stop"
 

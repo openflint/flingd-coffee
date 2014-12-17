@@ -45,8 +45,7 @@ class MDNSServer
         if @advertisement && @advertisement.status
             Log.d "reset MDNSServer ..."
             @advertisement.set mdns.tcp("openflint"), @port, options
-            if @advertisement.status == "stoped"
-                @advertisement.start()
+            @advertisement.start()
         else
             Log.d "create MDNSServer ..."
             @advertisement = mdns.createAdvertisement mdns.tcp("openflint"), @port, options
