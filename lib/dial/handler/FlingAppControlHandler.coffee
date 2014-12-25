@@ -170,7 +170,7 @@ class FlingAppControlHandler extends Handler
             bodyContent = JSON.stringify body
             Log.d "response body ->\n#{bodyContent}"
             headers =
-                "Connection": "keep-alive"
+                "Connection": "close"
                 "Cache-Control": "no-cache, must-revalidate, no-store"
                 "Content-Type": "application/json"
                 "Content-Length": bodyContent.length

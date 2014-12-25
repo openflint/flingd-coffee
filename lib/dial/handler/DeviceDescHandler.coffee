@@ -97,9 +97,10 @@ class DeviceDescHandler extends Handler
 
         headers =
             "Access-Control-Expose-Headers": "Application-URL"
-            "Application-URL": "http://" + host + "/apps"
+            "Application-URL": "http://" + host + ":9431/apps"
             "Content-Type": "application/xml"
             "Content-Length": buff.length
+            "Connection": "close"
         @respond req, res, 200, headers, buff
 
 module.exports.DeviceDescHandler = DeviceDescHandler
