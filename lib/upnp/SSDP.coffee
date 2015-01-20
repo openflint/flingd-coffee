@@ -36,9 +36,6 @@ class SSDP extends events.EventEmitter
         process.on "exit", =>
             @stop()
 
-    addUSN: (device) ->
-        @_usns[device] = @_udn + "::" + device
-
     search: (st) ->
         require("dns").lookup require("os").hostname(), (err, add) =>
             vars =
@@ -56,7 +53,6 @@ class SSDP extends events.EventEmitter
                 #
     start: (ip, portno) ->
         @ip = ip
-        @_usns[@_udn] = @_udn
         @_httphost = "http://" + ip + ":" + portno
         Log.i "Will try to bind to 0.0.0.0:" + @_ssdpPort
 
@@ -93,13 +89,13 @@ class SSDP extends events.EventEmitter
     _init: (opts) ->
         @_description = opts.description or "upnp/desc.html"
         @_udn = opts.udn or "uuid:f40c2981-7329-40b7-8b04-27f187aecfb5"
+        @_target = opts.target or "urn:dial-multiscreen-org:service:dial:1"
 
-        @_usns = {}
-        @_ssdpSig = opts.ssdpSig or @signature
+        @_ssdpSig = opts.ssdpSig or SSDP.signature
         @_ssdpIp = opts.ssdpIp or "239.255.255.250"
         @_ssdpPort = opts.ssdpPort or 1900
         @_ipPort = @_ssdpIp + ":" + @_ssdpPort
-        @_ssdpTtl = opts.ssdpTtl or 1
+        @_ssdpTtl = opts.ssdpTtl or 10
         @_ttl = opts.ttl or 1800
 
     #
@@ -172,9 +168,9 @@ class SSDP extends events.EventEmitter
             else
             # Log.i message: "\n" + msg, rinfo: rinfo, "Unhandled #{method} event"
 
-            #
-            # Handles NOTIFY command
-            #
+    #
+    # Handles NOTIFY command
+    #
     _notify: (headers, msg, rinfo) ->
         if not headers.NTS then Log.i headers, "Missing NTS header"
 
@@ -203,54 +199,49 @@ class SSDP extends events.EventEmitter
         if (st[0] is "\"") and (st[st.length - 1] is "\"")
             st = st.slice 1, -1 # unwrap quoted string
 
-        Object.keys(@_usns).forEach (usn) =>
-            udn = @_usns[usn]
-            if (st is "ssdp:all") or (usn is st) or (udn.indexOf(st) >= 0)
-                vars =
-                    "ST": usn
-                    "USN": udn
-                    "LOCATION": "#{@_httphost}/#{@_description}"
-                    "CACHE-CONTROL": "max-age=#{@_ttl}"
-                    "DATE": (new Date()).toUTCString()
-                    "SERVER": @_ssdpSig
-                    "BOOTID.UPNP.ORG": "9"
-                    "CONFIGID.UPNP.ORG": "1"
-                    "OPT": "\"http://schemas.upnp.org/upnp/1/0/\"; ns=01"
-                    "X-USER-AGENT": "redsonic"
-                    "EXT": ""
+        if (st is "ssdp:all") or (@_target is st) or (@_udn.indexOf(st) >= 0)
+            vars =
+                "ST": @_target
+                "USN": @_udn
+                "LOCATION": "#{@_httphost}/#{@_description}"
+                "CACHE-CONTROL": "max-age=#{@_ttl}"
+                "DATE": (new Date()).toUTCString()
+                "SERVER": @_ssdpSig
+                "BOOTID.UPNP.ORG": "9"
+                "CONFIGID.UPNP.ORG": "1"
+                "OPT": "\"http://schemas.upnp.org/upnp/1/0/\"; ns=01"
+                "X-USER-AGENT": "redsonic"
+                "EXT": ""
 
-                pkt = @_joinSSDPHeader "200 OK", vars, true
-                message = new Buffer pkt
-                @sock.send message, 0, message.length, port, peer, (err, bytes) =>
+            pkt = @_joinSSDPHeader "200 OK", vars, true
+            message = new Buffer pkt
+            @sock.send message, 0, message.length, port, peer, (err, bytes) =>
 
     _advertise: (alive) ->
         if not @sock then return
         if alive is undefined then alive = true
 
-        Object.keys(@_usns).forEach (usn) =>
-            udn = @_usns[usn]
+        heads =
+            HOST: @_ipPort
+            NT: @_target
+            NTS: if alive then "ssdp:alive" else "ssdp:byebye"
+            USN: @_udn
 
-            heads =
-                HOST: @_ipPort
-                NT: usn
-                NTS: if alive then "ssdp:alive" else "ssdp:byebye"
-                USN: udn
+        if alive
+            heads["LOCATION"] = @_httphost + "/" + @_description
+            heads["CACHE-CONTROL"] = "max-age=1800"
+            heads["SERVER"] = @_ssdpSig
+            heads["BOOTID.UPNP.ORG"] = "9"
+            heads["CONFIGID.UPNP.ORG"] = "1"
+            heads["DATE"] = (new Date).toUTCString()
+            heads["OPT"] = "\"http://schemas.upnp.org/upnp/1/0/\"; ns=01"
+            heads["X-USER-AGENT"] = "redsonic"
+            heads["EXT"] = ""
 
-            if alive
-                heads["LOCATION"] = @_httphost + "/" + @_description
-                heads["CACHE-CONTROL"] = "max-age=1800"
-                heads["SERVER"] = @_ssdpSig
-                heads["BOOTID.UPNP.ORG"] = "9"
-                heads["CONFIGID.UPNP.ORG"] = "1"
-                heads["DATE"] = (new Date).toUTCString()
-                heads["OPT"] = "\"http://schemas.upnp.org/upnp/1/0/\"; ns=01"
-                heads["X-USER-AGENT"] = "redsonic"
-                heads["EXT"] = ""
-
-            pkt = @_joinSSDPHeader "NOTIFY", heads, false
-            message = new Buffer pkt
-#            Log.d "advertise message: #{message}"
-            @sock.send message, 0, message.length, @_ssdpPort, @_ssdpIp, (err, bytes) =>
+        pkt = @_joinSSDPHeader "NOTIFY", heads, false
+        message = new Buffer pkt
+        # Log.d "advertise message: #{message}"
+        @sock.send message, 0, message.length, @_ssdpPort, @_ssdpIp, (err, bytes) =>
 
     _joinSSDPHeader: (head, vars, res) ->
         ret = ""

@@ -36,8 +36,8 @@ class SSDPServer
             uuid = Platform.getInstance().getDeviceUUID()
             ssdp = new SSDP
                 description: "ssdp/device-desc.xml"
-                udn: "uuid:#{uuid}"
-            ssdp.addUSN "urn:dial-multiscreen-org:service:dial:1"
+                udn: "uuid:#{uuid}::urn:dial-multiscreen-org:service:dial:1"
+                target: "urn:dial-multiscreen-org:service:dial:1"
             ssdp.start ipAddr, @port
             @servers.put ipAddr, ssdp
 
