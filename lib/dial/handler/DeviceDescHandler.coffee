@@ -90,7 +90,7 @@ class DeviceDescHandler extends Handler
         desc = desc.replace "{{ serviceURL }}", host
         desc = desc.replace "{{ friendlyName }}", name
         desc = desc.replace "{{ manufacturer }}", "openflint"
-        desc = desc.replace "{{ modelName }}", "MatchStick"
+        desc = desc.replace "{{ modelName }}", "Dongle"
         desc = desc.replace "{{ uuid }}", uuid
 
         buff = new Buffer desc

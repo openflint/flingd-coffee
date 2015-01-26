@@ -36,7 +36,7 @@ class MDNSServer
         options.txtRecord =
             id: name
             ve: "02"
-            md: "MatchStick"
+            md: "Dongle"
             ic: "/setup/icon.png"
             ca: "5"
             fn: name
