@@ -19,7 +19,7 @@
 class Session
 
     constructor: (@sessionManager, @token, @appId) ->
-        if not sessionManager
+        if not @sessionManager
             Log.e "cannot create a ReceiverSession with a null SessionManager!!!"
             throw new Error "cannot create a ReceiverSession with a null SessionManager!!!"
 
