@@ -25,7 +25,7 @@ os                      = require "os"
 class ReceiverSession extends Session
 
     constructor: (sessionManager, token, appId, @channel) ->
-        if not channel
+        if not @channel
             Log.e "cannot create a ReceiverSession with a null channel!!!"
             throw new Error "cannot create a ReceiverSession with a null channel!!!"
 
