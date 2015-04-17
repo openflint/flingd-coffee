@@ -31,8 +31,10 @@ class ReceiverSession extends Session
 
         super sessionManager, token, appId
         @ppTimerId = null
+        @checkIpTimerId = null
         @timeout = Config.RECEIVER_SESSION_TIMEOUT
         @tag = "ReceiverSession"
+        @cache_ip = []
 
         @channel.on "message", (message) =>
             Log.d "receiver channel received:\n#{message}"
@@ -118,12 +120,11 @@ class ReceiverSession extends Session
             token: senderSession.getToken()
 
     _onRegister: ->
-        ip = []
-        networkInterfaces = os.networkInterfaces()
-        for iface of networkInterfaces
-            for addressInfo in networkInterfaces[iface]
-                if not addressInfo.internal and addressInfo.family is "IPv4"
-                    ip.push addressInfo.address
+        ip = @_getIp()
+        @cache_ip = ip
+        @checkIpTimerId = setInterval ( =>
+            @_checkIp()
+        ), 3*1000
         @_reply
             type: "registerok"
             appid: @appId
@@ -131,6 +132,35 @@ class ReceiverSession extends Session
                 ip: ip
                 uuid: Platform.getInstance().getDeviceUUID()
                 device_name: Platform.getInstance().getDeviceName()
+
+    _getIp: ->
+        ip = []
+        networkInterfaces = os.networkInterfaces()
+        for iface of networkInterfaces
+            for addressInfo in networkInterfaces[iface]
+                if not addressInfo.internal and addressInfo.family is "IPv4"
+                    ip.push addressInfo.address
+        return ip
+
+    _checkIp: ->
+        ip = @_getIp()
+        if ip.length is 0
+            Log.w 'No ip!!!'
+            return
+        if @cache_ip.length isnt ip.length
+            Log.w 'ip not match! re-registerok!!!'
+            @_onRegister()
+            return
+        isIn = (i, arr) ->
+            for _i in arr
+                if i is _i
+                    return true
+            return false
+        for i in @cache_ip
+            if not isIn i, ip
+                Log.w 'ip not match! re-registerok!!!'
+                @_onRegister()
+                return
 
     _startHeartbeat: ->
         @_reply
@@ -171,6 +201,8 @@ class ReceiverSession extends Session
         @clearTimer()
         if @ppTimerId
             clearTimeout @ppTimerId
+        if @checkIpTimerId
+            clearInterval @checkIpTimerId
 
         @sessionManager.clearReceiverSession()
         @channel.close()
