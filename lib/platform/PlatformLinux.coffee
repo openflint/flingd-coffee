@@ -56,7 +56,7 @@ class PlatformLinux extends Platform
                 "--kiosk",
                 "--start-maximized",
                 "--window-size=1280,720",
-                "--single-process",
+#                "--single-process",
                 "--allow-insecure-websocket-from-https-origin",
                 "--allow-running-insecure-content",
                 "--app=" + appUrl,
